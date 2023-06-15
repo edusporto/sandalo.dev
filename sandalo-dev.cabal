@@ -1,0 +1,68 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.35.1.
+--
+-- see: https://github.com/sol/hpack
+
+name:           sandalo-dev
+version:        0.1.0.0
+synopsis:       Code for the website at <https://sandalo.dev>
+description:    Please see the README on GitHub at <https://github.com/edusporto/sandalo.dev>
+category:       Web
+homepage:       https://github.com/edusporto/sandalo.dev#readme
+bug-reports:    https://github.com/edusporto/sandalo.dev/issues
+author:         Eduardo Sandalo Porto
+maintainer:     edu@sandalo.dev
+copyright:      2023 Eduardo Sandalo Porto
+license:        MIT
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/edusporto/sandalo.dev
+
+library
+  exposed-modules:
+      Main
+      Site.Pages
+      Site.Posts
+      Site.Static
+      Site.Templates
+  other-modules:
+      Paths_sandalo_dev
+  hs-source-dirs:
+      code
+  default-extensions:
+      OverloadedStrings
+      QuasiQuotes
+      ImportQualifiedPost
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  build-depends:
+      base >=4.7 && <5
+    , hakyll
+    , interpolate
+  default-language: Haskell2010
+
+executable site
+  main-is: Main.hs
+  other-modules:
+      Site.Pages
+      Site.Posts
+      Site.Static
+      Site.Templates
+      Paths_sandalo_dev
+  hs-source-dirs:
+      code
+  default-extensions:
+      OverloadedStrings
+      QuasiQuotes
+      ImportQualifiedPost
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , hakyll
+    , interpolate
+    , sandalo-dev
+  default-language: Haskell2010

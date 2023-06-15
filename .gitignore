@@ -1,0 +1,15 @@
+# Programming environment
+.vscode
+
+# Haskell
+.stack-work/*
+dist-newstyle/*
+stack.yaml.lock
+
+# Hakyll
+_cache
+_site
+code/Main
+
+# Etc
+haunt-experiments

@@ -1,0 +1,84 @@
+name:                sandalo-dev
+version:             0.1.0.0
+github:              "edusporto/sandalo.dev"
+license:             MIT
+author:              "Eduardo Sandalo Porto"
+maintainer:          "edu@sandalo.dev"
+copyright:           "2023 Eduardo Sandalo Porto"
+
+extra-source-files:
+- README.md
+
+# Metadata used when publishing your package
+synopsis:            Code for the website at <https://sandalo.dev>
+category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/edusporto/sandalo.dev>
+
+dependencies:
+- base >= 4.7 && < 5
+- hakyll
+- interpolate
+
+default-extensions:
+- OverloadedStrings
+- QuasiQuotes
+- ImportQualifiedPost
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+
+library:
+  source-dirs: code
+
+executables:
+  site:
+    main:        Main.hs
+    source-dirs: code
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - sandalo-dev
+
+# tests:
+#   autodiff-test:
+#     main:                Spec.hs
+#     source-dirs:         test
+#     ghc-options:
+#     - -threaded
+#     - -rtsopts
+#     - -with-rtsopts=-N
+#     - -ddump-splices
+#     dependencies:
+#     - autodiff
+
+# benchmarks:
+#   algebraic-benches:
+#     main:                Main.hs
+#     source-dirs:         bench
+#     dependencies:
+#       - autodiff
+#       - criterion
+#       - deepseq
+#       - backprop
+#       - hmatrix-backprop
+#       - microlens
+#       - microlens-th
+#       - dependent-sum
+#     ghc-options:
+#       - -O2
+#       - -rtsopts
+#         #- -with-rtsopts=-N
