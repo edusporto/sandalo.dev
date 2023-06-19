@@ -24,8 +24,7 @@ indexPage =
     compile $ do
       posts <- recentFirst =<< loadAll [i|#{postsP}/*|]
       let indexCtx =
-            listField "posts" postCtx (return posts)
-              `mappend` defaultContext
+            listField "posts" postCtx (return posts) <> defaultContext
 
       getResourceBody
         >>= applyAsTemplate indexCtx
@@ -34,15 +33,14 @@ indexPage =
 
 archivePage :: Rules ()
 archivePage =
-  -- create [[i|#{pagesP}/archive.html|]] $ do
   create [[i|archive.html|]] $ do
     route idRoute
     compile $ do
       posts <- recentFirst =<< loadAll [i|#{postsP}/*|]
       let archiveCtx =
             listField "posts" postCtx (return posts)
-              `mappend` constField "title" "Archives"
-              `mappend` defaultContext
+              <> constField "title" "Archives"
+              <> defaultContext
       makeItem ""
         >>= loadAndApplyTemplate Templates.archiveT archiveCtx
         >>= loadAndApplyTemplate Templates.defaultT archiveCtx
@@ -57,7 +55,6 @@ normalPagesList =
 normalPages :: Rules ()
 normalPages =
   match (fromList normalPagesList) $ do
-    -- route $ setExtension "html" <> gsubRoute (show pagesP) (const "test")
     route $ gsubRoute (show pagesP) (const ".") `composeRoutes` setExtension "html"
     compile $
       pandocCompiler

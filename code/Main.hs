@@ -6,8 +6,18 @@ import Site.Posts (rules)
 import Site.Static (rules)
 import Site.Templates (rules)
 
+configuration :: Configuration
+configuration =
+  defaultConfiguration
+    { storeDirectory = ".cache",
+      tmpDirectory = ".cache/tmp",
+      destinationDirectory = "site",
+      providerDirectory = "content",
+      previewPort = 8080
+    }
+
 main :: IO ()
-main = hakyll $ do
+main = hakyllWith configuration $ do
   Site.Static.rules
   Site.Pages.rules
   Site.Posts.rules

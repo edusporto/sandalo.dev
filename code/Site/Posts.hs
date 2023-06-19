@@ -9,8 +9,7 @@ postsP = "posts"
 
 postCtx :: Context String
 postCtx =
-  dateField "date" "%B %e, %Y"
-    `mappend` defaultContext
+  dateField "date" "%B %e, %Y" <> defaultContext
 
 rules :: Rules ()
 rules = do
