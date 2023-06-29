@@ -22,11 +22,13 @@ dependencies:
 - base >= 4.7 && < 5
 - hakyll
 - interpolate
+- template-haskell
 
 default-extensions:
 - OverloadedStrings
 - QuasiQuotes
 - ImportQualifiedPost
+- TemplateHaskell
 
 ghc-options:
 - -Wall

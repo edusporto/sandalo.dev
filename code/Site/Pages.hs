@@ -9,12 +9,12 @@ pagesP :: Identifier
 pagesP = "pages"
 
 pagesCustomP :: Identifier
-pagesCustomP = "custom"
+pagesCustomP = [i|#{pagesP}/custom|]
 
 rules :: Rules ()
 rules = do
   normalPages
-  archivePage
+  postsPage
   indexPage
 
 indexPage :: Rules ()
@@ -31,30 +31,24 @@ indexPage =
         >>= loadAndApplyTemplate Templates.defaultT indexCtx
         >>= relativizeUrls
 
-archivePage :: Rules ()
-archivePage =
-  create [[i|archive.html|]] $ do
+postsPage :: Rules ()
+postsPage =
+  create [[i|posts.html|]] $ do
     route idRoute
     compile $ do
       posts <- recentFirst =<< loadAll [i|#{postsP}/*|]
       let archiveCtx =
             listField "posts" postCtx (return posts)
-              <> constField "title" "Archives"
+              <> constField "title" "Posts"
               <> defaultContext
       makeItem ""
-        >>= loadAndApplyTemplate Templates.archiveT archiveCtx
+        >>= loadAndApplyTemplate Templates.postsT archiveCtx
         >>= loadAndApplyTemplate Templates.defaultT archiveCtx
         >>= relativizeUrls
 
-normalPagesList :: [Identifier]
-normalPagesList =
-  [ [i|#{pagesP}/about.rst|],
-    [i|#{pagesP}/contact.md|]
-  ]
-
 normalPages :: Rules ()
 normalPages =
-  match (fromList normalPagesList) $ do
+  match [i|#{pagesP}/*|] $ do
     route $ gsubRoute (show pagesP) (const ".") `composeRoutes` setExtension "html"
     compile $
       pandocCompiler

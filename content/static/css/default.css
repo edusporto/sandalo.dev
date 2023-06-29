@@ -1,14 +1,30 @@
+@font-face {
+  font-family: 'Linux Libertine';
+  src: url(/static/fonts/libertine/LinLibertine_R.ttf);
+}
+
+@font-face {
+  font-family: 'Linux Biolinum';
+  src: url(/static/fonts/biolinum/LinBiolinum_R.ttf);
+}
+
 html {
-  font-size: 62.5%;
+  font-size: 80.0%;
 }
 
 body {
   font-size: 1.6rem;
   color: #000;
+  font-family: 'Linux Libertine', serif;
 }
 
 header {
-  border-bottom: 0.2rem solid #000;
+  font-family: 'Linux Biolinum', sans-serif;
+  border-bottom: 0.2rem solid rgba(0, 0, 0, 0.5);
+}
+
+h1, h2, h3 {
+  font-family: 'Linux Biolinum', sans-serif;
 }
 
 nav {
@@ -20,13 +36,13 @@ nav a {
   font-weight: bold;
   color: black;
   text-decoration: none;
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
 }
 
 footer {
   margin-top: 3rem;
   padding: 1.2rem 0;
-  border-top: 0.2rem solid #000;
+  border-top: 0.2rem solid rgba(0, 0, 0, 0.5);
   font-size: 1.2rem;
   color: #555;
 }
@@ -51,17 +67,17 @@ article .header {
   text-decoration: none;
 }
 
-@media (max-width: 319px) {
+@media (max-width: 379px) {
   body {
     width: 90%;
     margin: 0;
     padding: 0 5%;
   }
   header {
-    margin: 4.2rem 0;
+    margin: 2.0rem 0;
   }
   nav {
-    margin: 0 auto 3rem;
+    margin: 0 auto 2.0rem;
     text-align: center;
   }
   footer {
@@ -69,7 +85,7 @@ article .header {
   }
   .logo {
     text-align: center;
-    margin: 1rem auto 3rem;
+    margin: 1rem auto 1.0em;
   }
   .logo a {
     font-size: 2.4rem;
@@ -80,17 +96,17 @@ article .header {
   }
 }
 
-@media (min-width: 320px) {
+@media (min-width: 380px) {
   body {
     width: 90%;
     margin: 0;
     padding: 0 5%;
   }
   header {
-    margin: 4.2rem 0;
+    margin: 3.2rem 0;
   }
   nav {
-    margin: 0 auto 3rem;
+    margin: 0 auto 2.5rem;
     text-align: center;
   }
   footer {
@@ -98,7 +114,7 @@ article .header {
   }
   .logo {
     text-align: center;
-    margin: 1rem auto 3rem;
+    margin: 1rem auto 2rem;
   }
   .logo a {
     font-size: 2.4rem;
@@ -109,7 +125,7 @@ article .header {
   }
 }
 
-@media (min-width: 640px) {
+@media (min-width: 800px) {
   body {
     width: 60rem;
     margin: 0 auto;

@@ -2,7 +2,7 @@ module Site.Templates
   ( templatesP,
     defaultT,
     postT,
-    archiveT,
+    postsT,
     rules,
   )
 where
@@ -19,8 +19,8 @@ defaultT = [i|#{templatesP}/default.html|]
 postT :: Identifier
 postT = [i|#{templatesP}/post.html|]
 
-archiveT :: Identifier
-archiveT = [i|#{templatesP}/archive.html|]
+postsT :: Identifier
+postsT = [i|#{templatesP}/posts.html|]
 
 rules :: Rules ()
 rules = do

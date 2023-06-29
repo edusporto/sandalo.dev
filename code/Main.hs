@@ -1,10 +1,12 @@
 module Main (module Main) where
 
 import Hakyll
-import Site.Pages (rules)
-import Site.Posts (rules)
-import Site.Static (rules)
-import Site.Templates (rules)
+import Language.Haskell.TH (runIO)
+import Language.Haskell.TH.Syntax (lift)
+import Site.Pages qualified (rules)
+import Site.Posts qualified (rules)
+import Site.Static qualified (rules)
+import Site.Templates qualified (rules)
 
 configuration :: Configuration
 configuration =
@@ -13,7 +15,9 @@ configuration =
       tmpDirectory = ".cache/tmp",
       destinationDirectory = "site",
       providerDirectory = "content",
-      previewPort = 8080
+      previewPort = 8080,
+      -- Read deploy command at compile time
+      deployCommand = $(runIO (readFile "./deploy.sh") >>= lift)
     }
 
 main :: IO ()

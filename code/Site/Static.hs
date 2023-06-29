@@ -15,3 +15,7 @@ rules = do
   match [i|#{staticP}/css/*|] $ do
     route idRoute
     compile compressCssCompiler
+
+  match [i|#{staticP}/fonts/*/*|] $ do
+    route idRoute
+    compile copyFileCompiler
