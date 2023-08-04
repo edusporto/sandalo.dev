@@ -1,157 +1,227 @@
-@font-face {
-  font-family: 'Linux Libertine';
-  src: url(/static/fonts/libertine/LinLibertine_R.ttf);
+/* ==================================== */
+/* Definitions */
+:root {
+  --c1: #100F16;
+  --c2: #21202B;
+  --c3: #383745;
+  --c4: #4B4958;
+  --c5: #797787;
+  --c6: #B3B0C3;
+  --c7: #CECBE1;
+  --c8: #EDEBFD;
+
+  --p1: #9D7B00;
+  --p2: #D8A800;
+  --p3: #FFC701;
+  --p4: #FFD43A;
 }
 
 @font-face {
-  font-family: 'Linux Biolinum';
-  src: url(/static/fonts/biolinum/LinBiolinum_R.ttf);
+  font-family: 'Lato';
+  src: url(/static/fonts/lato/Lato-Regular.ttf);
 }
 
-html {
-  font-size: 80.0%;
-}
-
+/* ==================================== */
+/* Body */
 body {
-  font-size: 1.6rem;
-  color: #000;
-  font-family: 'Linux Libertine', serif;
+  background: var(--c2);
+  color: var(--c7);
+  font-family: Lato, sans-serif;
+  font-size: 1.12rem;
 }
 
-header {
-  font-family: 'Linux Biolinum', sans-serif;
-  border-bottom: 0.2rem solid rgba(0, 0, 0, 0.5);
+/* ==================================== */
+/* Top navigation */
+.topnav {
+  overflow: hidden;
+  margin-top: 12px;
+  padding: 16px 0px 16px 0px;
+  /* background-color: var(--c1); */
 }
 
-h1, h2, h3 {
-  font-family: 'Linux Biolinum', sans-serif;
-}
-
-nav {
-  text-align: right;
-}
-
-nav a {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: black;
+.topnav a {
+  float: left;
+  color: var(--c6) !important;
+  text-align: center;
+  margin-right: 24px;
   text-decoration: none;
-  /* text-transform: uppercase; */
+  font-size: 20px;
 }
 
+.topnav a:hover {
+  color: var(--c8) !important;
+}
+
+.topnav a.name {
+  color: var(--p4) !important;
+}
+
+/* ==================================== */
+/* Links */
+a:link {
+  color: var(--p3);
+}
+
+a:visited {
+  color: var(--p2);
+}
+
+a:active {
+  color: var(--p4);
+}
+
+/* ==================================== */
+/* Headers */
+.header {
+  font-style: italic;
+  color: var(--c5)
+}
+
+/* ==================================== */
+/* Profile image */
+.profile {
+  border-radius: 10%;
+}
+
+/* ==================================== */
+/* Footer */
 footer {
   margin-top: 3rem;
   padding: 1.2rem 0;
-  border-top: 0.2rem solid rgba(0, 0, 0, 0.5);
-  font-size: 1.2rem;
-  color: #555;
+  border-top: 0.1rem solid var(--c4);
+  color: var(--c5);
+  font-size: 1rem !important;
 }
 
-h1 {
-  font-size: 2.4rem;
-}
-
-h2 {
-  font-size: 2rem;
-}
-
-article .header {
-  font-size: 1.4rem;
-  font-style: italic;
-  color: #555;
-}
-
-.logo a {
-  font-weight: bold;
-  color: #000;
-  text-decoration: none;
-}
-
+/* ==================================== */
+/* Responsiveness */
 @media (max-width: 379px) {
   body {
     width: 90%;
-    margin: 0;
-    padding: 0 5%;
+    margin: 0 auto;
+    /* padding: 0 5%; */
   }
+
   header {
     margin: 2.0rem 0;
   }
-  nav {
-    margin: 0 auto 2.0rem;
-    text-align: center;
-  }
+
   footer {
     text-align: center;
   }
+
   .logo {
     text-align: center;
     margin: 1rem auto 1.0em;
   }
+
   .logo a {
     font-size: 2.4rem;
   }
-  nav a {
+
+  .profile {
+    width: 80%;
     display: block;
-    line-height: 1.6;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
 @media (min-width: 380px) {
   body {
     width: 90%;
-    margin: 0;
-    padding: 0 5%;
+    margin: 0 auto;
   }
+
   header {
     margin: 3.2rem 0;
   }
-  nav {
-    margin: 0 auto 2.5rem;
-    text-align: center;
-  }
+
   footer {
-    text-align: center;
+    text-align: right;
   }
+
   .logo {
     text-align: center;
     margin: 1rem auto 2rem;
   }
+
   .logo a {
     font-size: 2.4rem;
   }
-  nav a {
-    display: inline;
-    margin: 0 0.6rem;
+
+  .profile {
+    width: 70%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
-@media (min-width: 800px) {
+@media (min-width: 600px) {
+  body {
+    width: 90%;
+    margin: 0 auto;
+    /* padding: 0 5%; */
+  }
+
+  nav a {
+    display: inline-block;
+  }
+
+  header {
+    margin: 3.2rem 0;
+  }
+
+  footer {
+    text-align: right;
+  }
+
+  .logo {
+    text-align: center;
+    margin: 1rem auto 2rem;
+  }
+
+  .logo a {
+    font-size: 2.4rem;
+  }
+
+  .profile {
+    float: right;
+    width: 30%;
+    margin: 5px;
+  }
+}
+
+@media (min-width: 1050px) {
   body {
     width: 60rem;
     margin: 0 auto;
-    padding: 0;
+    /* padding: 0; */
   }
+
   header {
     margin: 0 0 3rem;
     padding: 1.2rem 0;
   }
-  nav {
-    margin: 0;
-    text-align: right;
-  }
-  nav a {
-    margin: 0 0 0 1.2rem;
-    display: inline;
-  }
+
   footer {
     text-align: right;
   }
+
   .logo {
     margin: 0;
     text-align: left;
   }
+
   .logo a {
     float: left;
     font-size: 1.8rem;
+  }
+
+  .profile {
+    float: right;
+    width: 30%;
+    margin: 5px;
   }
 }

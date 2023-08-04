@@ -9,13 +9,24 @@ pagesP :: Identifier
 pagesP = "pages"
 
 pagesCustomP :: Identifier
-pagesCustomP = [i|#{pagesP}/custom|]
+pagesCustomP = "custom-pages"
 
 rules :: Rules ()
 rules = do
   normalPages
   postsPage
   indexPage
+  cvPage
+
+normalPages :: Rules ()
+normalPages =
+  match [i|#{pagesP}/*|] $ do
+    route $ gsubRoute (show pagesP) (const ".") `composeRoutes` setExtension "html"
+    compile $
+      pandocCompiler
+        >>= loadAndApplyTemplate Templates.defaultT defaultContext
+        >>= relativizeUrls
+
 
 indexPage :: Rules ()
 indexPage =
@@ -46,11 +57,8 @@ postsPage =
         >>= loadAndApplyTemplate Templates.defaultT archiveCtx
         >>= relativizeUrls
 
-normalPages :: Rules ()
-normalPages =
-  match [i|#{pagesP}/*|] $ do
-    route $ gsubRoute (show pagesP) (const ".") `composeRoutes` setExtension "html"
-    compile $
-      pandocCompiler
-        >>= loadAndApplyTemplate Templates.defaultT defaultContext
-        >>= relativizeUrls
+cvPage :: Rules ()
+cvPage =
+  match [i|#{pagesCustomP}/cv.pdf|] $ do
+    route $ gsubRoute (show pagesCustomP) (const ".")
+    compile copyFileCompiler

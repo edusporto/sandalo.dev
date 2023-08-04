@@ -1,35 +1,22 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <meta charset="utf-8">
-        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>sandalo.dev
-            $if(no-title)$
-            $else$
-                - $title$
-            $endif$</title>
-        <link rel="stylesheet" href="/static/css/default.css" />
+        <link rel="stylesheet" href="/static/css/default.css"/>
+
+        <title>sandalo.dev</title>
     </head>
     <body>
-        <header>
-            <div class="logo">
-                <a href="/">sandalo.dev</a>
-            </div>
-            <nav>
-                <a href="/">Home</a>
-                <!-- TODO: About & Contact should be the home page -->
-                <!-- <a href="/about.html">About</a> -->
-                <!-- <a href="/contact.html">Contact</a> -->
-
-                <!-- TODO: create projects.html -->
-                <a href="/about.html">Projects</a>
-                <a href="/posts.html">Posts</a>
-            </nav>
-        </header>
+        <nav class="topnav">
+            <a class="name" href="/"><b>Eduardo Sandalo Porto</b></a>
+            <a href="/">home</a>
+            <a href="/cv.pdf">cv</a>
+            <a href="/projects.html">projects</a>
+            <a href="/posts.html">posts</a>
+        </nav>
 
         <main role="main">
-            <h1>$title$</h1>
             $body$
         </main>
 
