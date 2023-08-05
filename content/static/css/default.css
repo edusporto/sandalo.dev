@@ -30,6 +30,15 @@ body {
   font-size: 1.12rem;
 }
 
+p {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+a {
+  text-decoration: none;
+}
+
 /* ==================================== */
 /* Top navigation */
 .topnav {
@@ -56,6 +65,11 @@ body {
   color: var(--p4) !important;
 }
 
+.topnav .dont-break {
+  display: inline-block;
+  margin-bottom: -5px;
+}
+
 /* ==================================== */
 /* Links */
 a:link {
@@ -73,7 +87,7 @@ a:active {
 /* ==================================== */
 /* Headers */
 .header {
-  font-style: italic;
+  /* font-style: italic; */
   color: var(--c5)
 }
 
@@ -187,7 +201,8 @@ footer {
   }
 
   .profile {
-    float: right;
+    float: left;
+    margin-right: 1.6rem !important;
     width: 30%;
     margin: 5px;
   }
@@ -220,7 +235,8 @@ footer {
   }
 
   .profile {
-    float: right;
+    float: left;
+    margin-right: 1.6rem !important;
     width: 30%;
     margin: 5px;
   }
