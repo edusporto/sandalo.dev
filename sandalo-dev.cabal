@@ -28,6 +28,7 @@ library
       Main
       Site.Pages
       Site.Posts
+      Site.Projects
       Site.Static
       Site.Templates
   other-modules:
@@ -52,6 +53,7 @@ executable site
   other-modules:
       Site.Pages
       Site.Posts
+      Site.Projects
       Site.Static
       Site.Templates
       Paths_sandalo_dev

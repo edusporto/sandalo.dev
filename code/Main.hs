@@ -5,6 +5,7 @@ import Language.Haskell.TH (runIO)
 import Language.Haskell.TH.Syntax (lift)
 import Site.Pages qualified (rules)
 import Site.Posts qualified (rules)
+import Site.Projects qualified (rules)
 import Site.Static qualified (rules)
 import Site.Templates qualified (rules)
 
@@ -25,4 +26,5 @@ main = hakyllWith configuration $ do
   Site.Static.rules
   Site.Pages.rules
   Site.Posts.rules
+  Site.Projects.rules
   Site.Templates.rules

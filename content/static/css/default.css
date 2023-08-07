@@ -39,6 +39,10 @@ a {
   text-decoration: none;
 }
 
+/* a:hover {
+  color: var(--p4) !important;
+} */
+
 /* ==================================== */
 /* Top navigation */
 .topnav {
@@ -105,6 +109,7 @@ footer {
   border-top: 0.1rem solid var(--c4);
   color: var(--c5);
   font-size: 1rem !important;
+  clear: both;
 }
 
 /* ==================================== */
@@ -139,6 +144,13 @@ footer {
     margin-left: auto;
     margin-right: auto;
   }
+
+  .go-left {
+    width: 90% !important;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
 @media (min-width: 380px) {
@@ -166,6 +178,13 @@ footer {
 
   .profile {
     width: 70%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .go-left {
+    width: 80%;
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -202,9 +221,16 @@ footer {
 
   .profile {
     float: left;
-    margin-right: 1.6rem !important;
+    margin-right: 1.6rem;
+    margin-bottom: 1.3rem;
     width: 30%;
-    margin: 5px;
+  }
+
+  .go-left {
+    float: left;
+    margin-right: 1.6rem;
+    margin-bottom: 1.6rem;
+    width: 40%;
   }
 }
 
@@ -236,8 +262,15 @@ footer {
 
   .profile {
     float: left;
-    margin-right: 1.6rem !important;
+    margin-right: 1.6rem;
+    margin-bottom: 1.6rem;
     width: 30%;
-    margin: 5px;
+  }
+
+  .go-left {
+    float: left;
+    margin-right: 1.6rem;
+    margin-bottom: 1.6rem;
+    width: 40%;
   }
 }
