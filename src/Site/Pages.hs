@@ -27,13 +27,12 @@ normalPages =
         >>= loadAndApplyTemplate Templates.defaultT defaultContext
         >>= relativizeUrls
 
-
 indexPage :: Rules ()
 indexPage =
   match [i|#{pagesCustomP}/index.html|] $ do
     route $ gsubRoute (show pagesCustomP) (const ".")
     compile $ do
-      posts <- recentFirst =<< loadAll [i|#{postsP}/*|]
+      posts <- recentFirst =<< loadAll [i|#{postsP}/*/*.md|]
       let indexCtx =
             listField "posts" postCtx (return posts) <> defaultContext
 
@@ -47,7 +46,7 @@ postsPage =
   create [[i|posts.html|]] $ do
     route idRoute
     compile $ do
-      posts <- recentFirst =<< loadAll [i|#{postsP}/*|]
+      posts <- recentFirst =<< loadAll [i|#{postsP}/*/*.md|]
       let archiveCtx =
             listField "posts" postCtx (return posts)
               <> constField "title" "Posts"

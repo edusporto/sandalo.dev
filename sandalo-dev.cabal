@@ -25,7 +25,6 @@ source-repository head
 
 library
   exposed-modules:
-      Main
       Site.Pages
       Site.Posts
       Site.Projects
@@ -34,7 +33,7 @@ library
   other-modules:
       Paths_sandalo_dev
   hs-source-dirs:
-      code
+      src
   default-extensions:
       OverloadedStrings
       QuasiQuotes
@@ -50,15 +49,8 @@ library
 
 executable site
   main-is: Main.hs
-  other-modules:
-      Site.Pages
-      Site.Posts
-      Site.Projects
-      Site.Static
-      Site.Templates
-      Paths_sandalo_dev
   hs-source-dirs:
-      code
+      app
   default-extensions:
       OverloadedStrings
       QuasiQuotes

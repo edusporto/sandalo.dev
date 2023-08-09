@@ -13,10 +13,13 @@ postCtx =
 
 rules :: Rules ()
 rules = do
-  match [i|#{postsP}/*|] $ do
+  match [i|#{postsP}/*/*.md|] $ do
     route $ setExtension "html"
     compile $
       pandocCompiler
         >>= loadAndApplyTemplate Templates.postT postCtx
         >>= loadAndApplyTemplate Templates.defaultT postCtx
         >>= relativizeUrls
+  match [i|#{postsP}/*/*|] $ do
+    route idRoute
+    compile copyFileCompiler
