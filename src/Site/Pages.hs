@@ -1,5 +1,6 @@
 module Site.Pages (rules) where
 
+import Compiler (myPandocCompiler)
 import Data.String.Interpolate.IsString (i)
 import Hakyll
 import Site.Posts (postCtx, postsP)
@@ -23,7 +24,7 @@ normalPages =
   match [i|#{pagesP}/*|] $ do
     route $ gsubRoute (show pagesP) (const ".") `composeRoutes` setExtension "html"
     compile $
-      pandocCompiler
+      myPandocCompiler
         >>= loadAndApplyTemplate Templates.defaultT defaultContext
         >>= relativizeUrls
 
@@ -32,7 +33,7 @@ indexPage =
   match [i|#{pagesCustomP}/index.html|] $ do
     route $ gsubRoute (show pagesCustomP) (const ".")
     compile $ do
-      posts <- recentFirst =<< loadAll [i|#{postsP}/*/*.md|]
+      posts <- recentFirst =<< loadAll [i|#{postsP}/**.md|]
       let indexCtx =
             listField "posts" postCtx (return posts) <> defaultContext
 
@@ -46,7 +47,7 @@ postsPage =
   create [[i|posts.html|]] $ do
     route idRoute
     compile $ do
-      posts <- recentFirst =<< loadAll [i|#{postsP}/*/*.md|]
+      posts <- recentFirst =<< loadAll [i|#{postsP}/**.md|]
       let archiveCtx =
             listField "posts" postCtx (return posts)
               <> constField "title" "Posts"

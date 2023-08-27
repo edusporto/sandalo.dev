@@ -1,6 +1,8 @@
 module Main (module Main) where
 
 import Hakyll
+import Hakyll.Contrib.LaTeX (initFormulaCompilerDataURI)
+import Image.LaTeX.Render (defaultEnv)
 import Language.Haskell.TH (runIO)
 import Language.Haskell.TH.Syntax (lift)
 import Site.Pages qualified (rules)
@@ -22,9 +24,11 @@ configuration =
     }
 
 main :: IO ()
-main = hakyllWith configuration $ do
-  Site.Static.rules
-  Site.Pages.rules
-  Site.Posts.rules
-  Site.Projects.rules
-  Site.Templates.rules
+main = do
+  renderFormulae <- initFormulaCompilerDataURI 1000 defaultEnv
+  hakyllWith configuration $ do
+    Site.Static.rules
+    Site.Pages.rules
+    Site.Posts.rules renderFormulae
+    Site.Projects.rules
+    Site.Templates.rules

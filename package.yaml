@@ -6,6 +6,8 @@ author:              "Eduardo Sandalo Porto"
 maintainer:          "edu@sandalo.dev"
 copyright:           "2023 Eduardo Sandalo Porto"
 
+allow-never: true
+
 extra-source-files:
 - README.md
 
@@ -23,12 +25,19 @@ dependencies:
 - hakyll
 - interpolate
 - template-haskell
+- pandoc
+- pandoc-types
+- latex-formulae-hakyll
+- latex-formulae-image
+- latex-formulae-pandoc
 
 default-extensions:
 - OverloadedStrings
 - QuasiQuotes
 - ImportQualifiedPost
 - TemplateHaskell
+- LambdaCase
+- RecordWildCards
 
 ghc-options:
 - -Wall
