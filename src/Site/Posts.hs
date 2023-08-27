@@ -29,12 +29,14 @@ pandocFomulaOptions =
     options mathType =
       let op@FormulaOptions {preamble} = formulaOptions defaultPandocFormulaOptions mathType
        in op
-            { preamble =
+            { dpi = 200,
+              preamble =
                 preamble
-                  <> "\\usepackage{color}\\usepackage{everysel}"
-                  <> "\\EverySelectfont{\\color{red}}"
-                  <> "\\everymath{\\color{white}}"
-                  <> "\\everydisplay{\\color{white}}"
+                  <> "\\usepackage{color}\\usepackage{xcolor}\\usepackage{everysel}\\usepackage{tikz}"
+                  <> "\\usetikzlibrary{automata,positioning,patterns}"
+                  -- <> "\\EverySelectfont{\\color{red}}"
+                  <> "\\everymath{\\color[HTML]{888888}}"
+                  <> "\\everydisplay{\\color[HTML]{888888}}"
             }
 
 rules :: RenderFormulae -> Rules ()
