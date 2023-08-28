@@ -1,7 +1,9 @@
 module Site.Static (rules) where
 
-import Hakyll
+import Compiler (pandocCodeStyle)
 import Data.String.Interpolate.IsString (i)
+import Hakyll
+import Text.Pandoc.Highlighting (styleToCss)
 
 staticP :: Identifier
 staticP = "static"
@@ -15,6 +17,11 @@ rules = do
   match [i|#{staticP}/css/*|] $ do
     route idRoute
     compile compressCssCompiler
+
+  create [[i|#{staticP}/css/style.css|]] $ do
+    route idRoute
+    compile $ do
+      makeItem $ styleToCss pandocCodeStyle
 
   match [i|#{staticP}/js/*|] $ do
     route idRoute

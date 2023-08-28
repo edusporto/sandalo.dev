@@ -6,12 +6,17 @@ packages:
 
 extra-deps:
 - hakyll-4.15.1.1
-- github: edusporto/latex-formulae
-  commit: 046c7ae375679e85c28e4d1e73b69adb484687dd
-  subdirs:
-  - latex-formulae-hakyll
-  - latex-formulae-image
-  - latex-formulae-pandoc
+- ../latex-formulae/latex-formulae-hakyll
+- ../latex-formulae/latex-formulae-pandoc
+- ../latex-formulae/latex-formulae-image
+
+# - github: edusporto/latex-formulae
+#   commit: 046c7ae375679e85c28e4d1e73b69adb484687dd
+#   subdirs:
+#   - latex-formulae-hakyll
+#   - latex-formulae-image
+#   - latex-formulae-pandoc
+
 # - latex-formulae-hakyll-0.2.0.4
 # - latex-formulae-pandoc-0.2.0.6
 # - latex-formulae-image-0.1.1.4

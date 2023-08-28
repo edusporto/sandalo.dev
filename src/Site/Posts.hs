@@ -2,7 +2,7 @@
 
 module Site.Posts (postCtx, postsP, rules, RenderFormulae) where
 
--- import Compiler (myPandocCompiler)
+import Compiler (myPandocCompilerWithTransformM)
 import Data.String.Interpolate.IsString (i)
 import Hakyll
 import Image.LaTeX.Render
@@ -44,7 +44,7 @@ rules renderFormulae = do
   match [i|#{postsP}/**.md|] $ do
     route $ setExtension "html"
     compile $
-      pandocCompilerWithTransformM
+      myPandocCompilerWithTransformM
         defaultHakyllReaderOptions
         defaultHakyllWriterOptions
         (renderFormulae pandocFomulaOptions)

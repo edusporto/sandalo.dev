@@ -1,35 +1,28 @@
 -- From: <https://laurentrdc.xyz/posts/making-this-website.html>
 
-module Compiler (myPandocCompiler) where
+module Compiler (myPandocCompiler, myPandocCompilerWithTransformM, pandocCodeStyle) where
 
-import Hakyll -- hiding (pandocCompiler)
--- import Text.Pandoc
--- import Text.Pandoc.Highlighting
+import Hakyll
+import Text.Pandoc
+import qualified Text.Pandoc.Highlighting as S
+
+pandocCodeStyle :: S.Style
+pandocCodeStyle = S.breezeDark
 
 myPandocCompiler :: Compiler (Item String)
-myPandocCompiler = Hakyll.pandocCompiler
+myPandocCompiler =
+  pandocCompilerWith
+    defaultHakyllReaderOptions
+    defaultHakyllWriterOptions
+      { writerHighlightStyle = Just pandocCodeStyle
+      }
 
--- myPandocCompiler :: Compiler (Item String)
--- myPandocCompiler =
---   let mathExtensions =
---         [ Ext_tex_math_dollars,
---           Ext_tex_math_double_backslash,
---           Ext_latex_macros
---         ]
---       codeExtensions =
---         [ Ext_fenced_code_blocks,
---           Ext_fenced_code_attributes,
---           Ext_backtick_code_blocks
---         ]
---       newExtensions = foldr enableExtension defaultExtensions (mathExtensions <> codeExtensions)
---       defaultExtensions = writerExtensions defaultHakyllWriterOptions
---       writerOptions =
---         defaultHakyllWriterOptions
---           { writerExtensions = newExtensions,
---             writerHTMLMathMethod = MathJax "",
---             writerHighlightStyle = Just syntaxHighlightingStyle
---           }
---    in pandocCompilerWith defaultHakyllReaderOptions writerOptions
-
--- syntaxHighlightingStyle :: Style
--- syntaxHighlightingStyle = haddock
+myPandocCompilerWithTransformM ::
+  ReaderOptions ->
+  WriterOptions ->
+  (Pandoc -> Compiler Pandoc) ->
+  Compiler (Item String)
+myPandocCompilerWithTransformM readerOptions writerOptions =
+  pandocCompilerWithTransformM
+    readerOptions
+    writerOptions {writerHighlightStyle = Just pandocCodeStyle}
