@@ -20,7 +20,7 @@ configuration =
       providerDirectory = "content",
       previewPort = 8080,
       -- Read deploy command at compile time
-      deployCommand = $(runIO (readFile "./deploy.sh") >>= lift)
+      deployCommand = $(runIO (readFile "./deploy/deploy.sh") >>= lift)
     }
 
 main :: IO ()
