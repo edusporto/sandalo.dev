@@ -2,6 +2,7 @@
 title: De onde vem o RegEx?
 subtitle: Implementando expressões regulares a partir da teoria
 author: Eduardo Sandalo Porto
+lang: Portuguese
 ---
 
 <!-- <img src="./img/nanana.png" style="width: 70%; margin: auto; display: block;"> -->
@@ -39,8 +40,9 @@ Imagine que estamos modelando o sistema computacional de uma porta eletrônica, 
 - Os estados da porta devem ser **aberto** ou **fechado**.
 - As transições entre estados são definidas da seguinte forma: um comando de **abre** deve causar a porta a ficar **aberta**, um comando de **fecha** deve transitar ao estado de **fechado**.
 
-Vamos ver a representação de *diagrama de estados* do sistema acima. Para facilitar o desenho, vamos representar os estados de **aberto** e **fechado** pelas letras **A** e **F** respectivamente.
+Vamos ver a representação de *diagrama de estados* do sistema acima. Para facilitar o desenho, representamos os estados de **aberto** e **fechado** pelas letras **A** e **F** respectivamente.
 
+<div style="overflow-x: auto; overflow-y: hidden;">
 <svg width="350" height="100" style="display: block; margin: auto;" version="1.1" xmlns="http://www.w3.org/2000/svg">
 	<ellipse  stroke-width="1" fill="none" cx="119.5" cy="52.5" rx="30" ry="30"/>
 	<text x="112.5" y="58.5" font-family="Times New Roman" font-size="20">A</text>
@@ -59,15 +61,17 @@ Vamos ver a representação de *diagrama de estados* do sistema acima. Para faci
 	<text x="299.5" y="58.5" font-family="Times New Roman" font-size="20">fecha</text>
 	<polygon  stroke-width="1" points="253.297,65.725 256.83,74.473 262.708,66.382"/>
 </svg>
+</div>
 
 Isto é *quase* um autômato finito, como logo veremos, mas ilustra bem a ideia geral. Neste tipo de diagrama, representamos os estados do autômato usando círculos e as transições com setas. Um computador com esta definição que comece no estado **A** e processe uma fita contendo os comandos `[fecha, abre, abre]`, nesta ordem, deverá transitar entre os estados **F**, **A**, e **A** (note que uma porta aberta permanece igual quando recebe o comando `abre`).
 
 Nos resta adicionar dois conceitos para completar a definição de um autômato finito: em um autômato deve haver um estado de início, indicado por uma seta cuja origem não seja outro estado; e os estados de terminação, indicados por um círculo adicional interno. O estado de início é auto-explicativo, já os estados de terminação são um pouco mais complicados.
 
-O modelo computacional que definimos deve ser capaz de *aceitar* ou *rejeitar* as fitas que recebe como entrada; se seu último estado antes do fim da fita for um estado de terminação, a fita é aceita, caso contrário é rejeitada. Dizemos que a **linguagem** de um autômato é o conjunto de todas as fitas que aceita. Isto não é muito importante para o exemplo dado acima, afinal, toda sequência de abertos de botão para controlar uma porta é válida; no entanto, esta noção será fundamental para entender expressões regulares.
+O modelo computacional que definimos deve ser capaz de *aceitar* ou *rejeitar* as fitas que recebe como entrada; se seu último estado antes do fim da fita for um estado de terminação, a fita é aceita, caso contrário é rejeitada. Dizemos que a **linguagem** de um autômato é o conjunto de todas as fitas que aceita. Isto não é muito importante para o exemplo dado acima, afinal, toda sequência de apertos de botão para controlar uma porta é válida; no entanto, esta noção será fundamental para entender expressões regulares.
 
 O autômato finito abaixo é uma versão completa do sistema controlador de uma porta eletrônica. Ele aceita todas as possíveis entradas que recebe, como `[abre]`, `[fecha]`, `[abre, fecha]`, `[fecha, abre]`, etc. Desta forma, sua linguagem é o conjunto de todas as suas fitas.
 
+<div style="overflow-x: auto; overflow-y: hidden;">
 <svg width="350" height="120" style="display: block; margin: auto;" version="1.1" xmlns="http://www.w3.org/2000/svg">
 	<ellipse  stroke-width="1" fill="none" cx="119.5" cy="52.5" rx="30" ry="30"/>
 	<text x="112.5" y="58.5" font-family="Times New Roman" font-size="20">A</text>
@@ -90,6 +94,7 @@ O autômato finito abaixo é uma versão completa do sistema controlador de uma 
 	<polygon  stroke-width="1" points="119.5,117.5 119.5,82.5"/>
 	<polygon  stroke-width="1" points="119.5,82.5 114.5,90.5 124.5,90.5"/>
 </svg>
+</div>
 
 Agora, temos bagagem suficiente para definir *o que é um autômato determinístico* de maneira formal, isto é, dentro da matemática. Não se desespere, pois tentarei detalhar o que cada um dos símbolos esquisitos utilizados significam. Definições formais são úteis para especificar conceitos de forma inequívoca, evitando que pessoas diferentes tenham interpretações distintas de um mesmo assunto. Também aproveitaremos esta definição como base do programa que iremos escrever em breve...
 
@@ -127,10 +132,12 @@ Todo o código deste post estará escrito na linguagem Haskell. Não se preocupe
 Podemos representar nosso autômato finito da seguinte forma. Note que o nome do tipo criado é `DFA`, que vem do ingles *deterministic finite automaton*. Vale a pena mencionar que até agora estávamos estudando uma versão específica de autômato chamada *determinísica*, mas também existe o autômato finito *não determinístico*.
 
 ```haskell
+import qualified Data.Set as S
+
 data DFA state symbol = MkDFA
   { transition :: state -> symbol -> state,
     start :: state,
-    ending :: state -> Bool
+    endings :: S.Set state
   }
 ```
 
@@ -140,44 +147,160 @@ Valores do tipo `DFA` podem ser criados usando a função construtora `MkDFA` (d
 
 - Uma função de transição chamada `transition`, que recebe um estado e um símbolo e retorna outro estado. Note que o tipo de funções em Haskell é escrito somente usando setas – o tipo depois da última seta será o retorno da função e todos os outros serão seus parâmetros,
 - Um estado de início chamado `start`,
-- Uma função que retorna `True` caso um estado seja de terminação e `False` caso contrário. Funções que retornam valores *booleanos* podem ser chamadas de *predicados*, e são equivalentes a conjuntos – se um parâmetro está no conjunto que representa, retornará *verdadeiro* e, caso contrário, *falso*.
+- Um conjunto de estados de terminação chamado `ending`. Todas as funções associadas à manipulação de conjuntos foram importadas no comando `import qualified Data.Set as S`, e são acessadas a partir do nome `S`.
+
 
 Lembre do exemplo da porta eletrônica. Vamos representá-lo em Haskell!
 
 ```haskell
-data DoorState = Open | Closed
-data DoorSymbol = PleaseOpen | PleaseClose
-
-example1 :: DFA DoorState DoorSymbol
-example1 = MkDFA transition start ending
-  where
-    transition Open PleaseOpen = Open
-    transition Open PleaseClose = Closed
-    transition Closed PleaseOpen = Open
-    transition Closed PleaseClose = Closed
-    start = Open
-    ending state = True
+data DoorState = Open | Closed deriving (Eq, Ord, Show)
+data DoorSymbol = DoOpen | DoClose
 ```
 
----
-TODO
+Neste bloco, criamos um tipo `DoorState`, que representa os estados nos quais uma porta pode estar e cujos valores podem ser ou `Open` ou `Closed`. Também criamos um tipo `DoorSymbol`, que configura o alfabeto do exemplo e é habitado por `DoOpen` e `DoClose`. O trecho `deriving (Eq, Ord)` permite que valores de `DoorState` possam ser comparados por igualdade, por ordem (algo necessário para que possamos criar conjuntos de `DoorState`), e possam ser transformados em texto.
 
+Definimos o autômato do exemplo da seguinte forma:
 
 ```haskell
-run :: DFA state symbol -> [symbol] -> state
-run dfa = foldl (transition dfa) (start dfa)
+example1 :: DFA DoorState DoorSymbol
+example1 = MkDFA transition start endings
+  where
+    transition :: DoorState -> DoorSymbol -> DoorState
+    transition Open DoOpen = Open
+    transition Open DoClose = Closed
+    transition Closed DoOpen = Open
+    transition Closed DoClose = Closed
+    start :: DoorState
+    start = Open
+    endings :: S.Set DoorState
+    endings = S.fromList [Open, Closed]
 ```
+
+Acima, criamos um valor de `DFA` parametrizado pelos tipos `DoorState` e `DoorSymbol`, usando os membros `transition`, `start`, e `endings` definidos após a cláusula `where`.
+
+A função `transition` é definida usando a técnica de *pattern matching* em cima de seus parâmetros: quando recebe um valor `Open` e um `DoOpen`, retorna `Open`; quando recebe `Open` e `DoClose`, retorna `Closed`; e assim por diante. `start` é nada mais que o estado no qual o sistema começa e `endings` é um conjunto criado a partir da lista `[Open, Closed]`.
 
 ## Linguagens regulares
 
-Bla bla
+Até este momento, estávamos pensando em autômatos como um modelo abstrato para sistemas concretos; a partir de agora, vamos focar um pouco mais nas abstrações, com os holofotes no conceito de *linguagem* brevemente mencionado.
 
+A linguagem de um modelo computacional baseado em *aceitação* e *rejeição*, como discutido, é o conjunto de todas as entradas que, no final de sua computação, acaba em um estado de aceitação. Por definição, as **linguagens regulares** são *todas* as linguagens que podem ser descritas por autômatos finitos.
 
+Imagine que estamos lidando com uma fita cujo alfabeto contêm somente as letras 'a' e 'b'. O conjunto de todas as fitas possíveis com esta caracterísitica seria:
+
+<div style="overflow-x: auto; overflow-y: hidden;">
+$$\{\text{`` ''}, \text{``a''}, \text{``b''}, \text{``aa''}, \text{``ab''}, \text{``ba''}, \text{``bb''},  \text{``aaa''}, \text{``aab''}...\}$$
+</div>
+
+Desta forma, qualquer autômato que tenha ao menos um estado e que todos sejam de aceitação terá este conjunto como linguagem. Mas e se quisermos fazer alguma restrição? Abaixo, vemos o diagrama de estados de um autômato cuja linguagem contêm *apenas* as fitas que tenham um número par de aparições da letra 'a' e qualquer número da letra 'b'.
+
+<div style="overflow-x: auto; overflow-y: hidden;">
+<svg width="215" height="150" style="display: block; margin: auto;" version="1.1" xmlns="http://www.w3.org/2000/svg">
+	<ellipse  stroke-width="1" fill="none" cx="64.5" cy="45.5" rx="30" ry="30"/>
+	<text x="56.5" y="51.5" font-family="Times New Roman" font-size="20">q&#8320;</text>
+	<ellipse  stroke-width="1" fill="none" cx="64.5" cy="45.5" rx="24" ry="24"/>
+	<ellipse  stroke-width="1" fill="none" cx="182.5" cy="45.5" rx="30" ry="30"/>
+	<text x="174.5" y="51.5" font-family="Times New Roman" font-size="20">q&#8321;</text>
+	<path  stroke-width="1" fill="none" d="M 91.733,33.135 A 110.786,110.786 0 0 1 155.267,33.135"/>
+	<polygon  stroke-width="1" points="155.267,33.135 149.037,26.051 146.17,35.631"/>
+	<text x="119.5" y="19.5" font-family="Times New Roman" font-size="20">a</text>
+	<path  stroke-width="1" fill="none" d="M 77.725,72.297 A 22.5,22.5 0 1 1 51.275,72.297"/>
+	<text x="59.5" y="134.5" font-family="Times New Roman" font-size="20">b</text>
+	<polygon  stroke-width="1" points="51.275,72.297 42.527,75.83 50.618,81.708"/>
+	<path  stroke-width="1" fill="none" d="M 195.725,72.297 A 22.5,22.5 0 1 1 169.275,72.297"/>
+	<text x="177.5" y="134.5" font-family="Times New Roman" font-size="20">b</text>
+	<polygon  stroke-width="1" points="169.275,72.297 160.527,75.83 168.618,81.708"/>
+	<path  stroke-width="1" fill="none" d="M 154.146,55.125 A 140.25,140.25 0 0 1 92.854,55.125"/>
+	<polygon  stroke-width="1" points="92.854,55.125 99.568,61.752 101.753,51.993"/>
+	<text x="119.5" y="79.5" font-family="Times New Roman" font-size="20">a</text>
+	<polygon  stroke-width="1" points="2.5,45.5 34.5,45.5"/>
+	<polygon  stroke-width="1" points="34.5,45.5 26.5,40.5 26.5,50.5"/>
+</svg>
+</div>
+
+<div style="overflow-x: auto; overflow-y: hidden;">
+$$\{\text{`` ''}, \text{``b''}, \text{``aa''}, \text{``aab''}, \text{``baa''}, \text{``aabb''}, \text{``baab''}, \text{``bbaa''},  \text{``aaaa''}, ...\}$$
+</div>
+
+Em código, escrevemos este autômato como:
+
+```haskell
+data Q = Q1 | Q2 deriving (Eq, Ord, Show)
+data S = A | B
+
+example2 :: DFA Q S
+example2 = MkDFA transition start endings
+  where
+    transition :: Q -> S -> Q
+    transition Q1 A = Q2
+    transition Q2 A = Q1
+    transition q B = q
+    start :: Q
+    start = Q1
+    endings :: S.Set Q
+    endings = S.singleton Q1
+```
+
+Note que um *singleton* é um conjunto de apenas um elemento. Podemos usar o programa que descreve este autômato para verificar, de forma automática, se uma fita (ou *string*) pertence à sua linguagem; mas a questão é, como fazemos isso?
+
+Vamos precisar escrever uma função que percorre os estados do modelo, alternando-os a partir das regras da função de transição. Em pseudo-código de uma linguagem imperativa tradicional, faríamos algo similar a isto:
+
+<div style="overflow-x: auto; overflow-y: hidden;">
+<pre style="margin: 0">
+run(transition, start, tape):
+  state <- start
+  for symbol in tape:
+    state <- transition(state, symbol)
+  return state
+</pre>
+</div>
+
+Este padrão é muito comum quando escrevendo programas, e na progrmação funcional o chamamos de **fold** (dobra), já que seu comportamento é de "dobrar" sua entrada aos poucos até terminar com um único valor final. Em Haskell, a assinatura do `fold` dobrando elementos "da esquerda para a direita" é a seguinte:
+
+```haskell
+foldl :: (b -> a -> b) -> b -> [a] -> b
+```
+
+`foldl` recebe uma função que acumulará um resultado do tipo genérico `b` transformando-o a partir de cada elemento `a`, um valor inicial do tipo `b`, e uma lista de elementos do tipo `a`, retornando no final o resultado desta acumulação.
+
+A partir desta definição, a função que executa um autômato finito para cada fita diferente pode ser escrita assim:
+
+```haskell
+run :: DFA state symbol -> [symbol] -> state
+run dfa tape = foldl (transition dfa) (start dfa) tape
+```
+
+Os trechos `(transition dfa)` e `(start dfa)` extraem a função de transição e o estado inicial de um autômato, respectivamente. Após o fim da execução, precisamos saber se o estado final é de aceitação para descobrir se uma dada fita é parte da linguagem do autômato.
+
+```haskell
+accepts :: Ord state => DFA state symbol -> [symbol] -> Bool
+accepts dfa tape = run dfa tape `S.member` endings dfa
+```
+
+Alguns detalhes de notação:
+
+- `Ord state =>` indica que os estados devem ser ordenáveis, algo necessário para que possamos realizar uma busca em conjunto,
+- funções entre *backticks* "\`" são consideradas *infixas*, isto é, são escritas entre seus parâmetros, de forma que `S.member element set` seja igual a ``element `S.member` set``.
+
+Então, esta função verifica se o estado final é membro do conjunto de estados de terminação.
+
+Para testar as funções que acabamos de definir com alguns exemplos, definimos a função *main* de entrada do programa que imprime alguns resultados:
+
+```haskell
+main = do
+  print (run example2 [A, A, B, A, B, A]) -- imprime Q1
+  print (run example2 [A, A, B, A, B, B]) -- imprime Q2
+  print (example2 `accepts` [A, A, B, A, B, A]) -- imprime True
+  print (example2 `accepts` [A, A, B, A, B, B]) -- imprime False
+```
+
+### Operações regulares
+
+Estamos quase chegando em expressões regulares! Só nos resta entender um último conceito: como *compor* diferentes linguagens.
 
 ## Expressões regulares
 
 ## Conclusão
 
-muito legal
 
 ![*Na-Na-Na-Na-Na... Batman!*](./img/nanana.png){ class="go-center" }

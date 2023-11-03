@@ -33,6 +33,10 @@ body {
   stroke: var(--c7);
 }
 
+pre {
+  font-size: 20px;
+}
+
 /* p {
   text-align: justify;
   text-justify: inter-word;
@@ -129,7 +133,12 @@ footer {
   body {
     width: 90%;
     margin: 0 auto;
+    font-size: 19px !important;
     /* padding: 0 5%; */
+  }
+
+  pre {
+    font-size: 18px !important;
   }
 
   header {
