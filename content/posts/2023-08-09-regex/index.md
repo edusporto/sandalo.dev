@@ -1,5 +1,5 @@
 ---
-title: De onde vem o RegEx?
+title: De onde vem o RegEx? (rascunho)
 subtitle: Implementando expressões regulares a partir da teoria
 author: Eduardo Sandalo Porto
 lang: Portuguese
@@ -11,6 +11,8 @@ lang: Portuguese
 \EverySelectfont{\color{red}}
 \everymath{\color{black}}
 \everydisplay{\color{black}}
+
+*Nota: Esta versão do artigo é um rascunho e está incompleta!*
 
 As expressões regulares, também chamadas de *regex*, compõem uma ferramenta extremamente útil no arsenal de todo programador. Usando uma curta sequência de símbolos, podemos definir padrões complexos para a realização de buscas e identificação de cadeias de caracteres em largos corpos de texto. Mas você sabia que elas estão fortemente ligadas ao assunto de "o que é **computação**", e ao trabalho de pesquisa de grandes nomes como Alan Turing e Noam Chomsky?
 
@@ -298,9 +300,13 @@ main = do
 
 Estamos quase chegando em expressões regulares! Só nos resta entender um último conceito: como *compor* diferentes linguagens.
 
-## Expressões regulares
+---
 
-## Conclusão
+*Você chegou ao fim do rascunho! Volte em breve...*
+
+<!-- ## Expressões regulares -->
+
+<!-- ## Conclusão -->
 
 
 ![*Na-Na-Na-Na-Na... Batman!*](./img/nanana.png){ class="go-center" }
