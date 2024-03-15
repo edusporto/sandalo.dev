@@ -8,7 +8,8 @@ stack.yaml.lock
 
 # Hakyll
 .cache
-code/Main
+src/Main
+build
 
 # Etc
 haunt-experiments

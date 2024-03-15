@@ -16,7 +16,7 @@ configuration =
   defaultConfiguration
     { storeDirectory = ".cache",
       tmpDirectory = ".cache/tmp",
-      destinationDirectory = "site",
+      destinationDirectory = "build",
       providerDirectory = "content",
       previewPort = 8080,
       -- Read deploy command at compile time
