@@ -2,8 +2,8 @@
 .vscode
 
 # Haskell
-.stack-work/*
-dist-newstyle/*
+.stack-work/
+dist-newstyle/
 stack.yaml.lock
 
 # Hakyll
