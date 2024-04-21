@@ -1,6 +1,6 @@
 module Site.Static (rules) where
 
-import Compiler (pandocCodeStyle)
+import Compiler (pandocCodeStyle, relativizeFuncField)
 import Data.String.Interpolate.IsString (i)
 import Hakyll
 import Text.Pandoc.Highlighting (styleToCss)
@@ -16,7 +16,7 @@ rules = do
 
   match [i|#{staticP}/css/*|] $ do
     route idRoute
-    compile compressCssCompiler
+    compile $ compressCssCompiler >>= applyAsTemplate (relativizeFuncField <> defaultContext)
 
   create [[i|#{staticP}/css/style.css|]] $ do
     route idRoute

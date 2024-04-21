@@ -18,7 +18,27 @@
 
 @font-face {
   font-family: 'Lato';
-  src: url(/static/fonts/lato/Lato-Regular.ttf);
+  font-weight: normal;
+  src: url($relativize("/static/fonts/lato/Lato-Regular.ttf")$);
+}
+
+@font-face {
+  font-family: 'Lato';
+  font-weight: bold;
+  src: url($relativize("/static/fonts/lato/Lato-Bold.ttf")$);
+}
+
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  src: url($relativize("/static/fonts/lato/Lato-Italic.ttf")$);
+}
+
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: bold;
+  src: url($relativize("/static/fonts/lato/Lato-BoldItalic.ttf")$);
 }
 
 /* ==================================== */
