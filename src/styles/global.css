@@ -54,25 +54,17 @@ body {
 }
 
 pre {
-  font-size: 20px;
+  font-size: 16px;
+  padding: 8px;
 }
 
-/* p {
-    text-align: justify;
-    text-justify: inter-word;
-  } */
-
-/* figure {
-    margin: 0;
-  } */
+code {
+  font-size: 16px;
+}
 
 a {
   text-decoration: none;
 }
-
-/* a:hover {
-    color: var(--p4) !important;
-  } */
 
 .subtitle {
   color: var(--c6);
@@ -161,12 +153,6 @@ footer {
   body {
     width: 90%;
     margin: 0 auto;
-    font-size: 19px !important;
-    /* padding: 0 5%; */
-  }
-
-  pre {
-    font-size: 18px !important;
   }
 
   header {
@@ -337,7 +323,6 @@ footer {
     float: left;
     margin-right: 1.6rem;
     margin-bottom: 1.6rem;
-    /* width: 30%; */
   }
 
   .go-left {
