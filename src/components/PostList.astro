@@ -1,0 +1,26 @@
+---
+import { getStaticPaths } from "../pages/posts/[post].astro";
+import PostListing from "./PostListing.astro";
+
+const { max } = Astro.props;
+
+const staticPaths = await getStaticPaths();
+let posts = staticPaths.map((post: any) => {
+  return {
+    url: `/posts/${post.params.post}`,
+    frontmatter: post.props.frontmatter,
+  };
+});
+
+if (max || max == 0) {
+  posts = posts.slice(0, max);
+}
+---
+
+<ul>
+  {
+    posts.map((post: any) => {
+      return <PostListing url={post.url} frontmatter={post.frontmatter} />;
+    })
+  }
+</ul>

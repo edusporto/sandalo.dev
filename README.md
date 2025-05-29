@@ -2,37 +2,17 @@
 
 Generates the static site found at <https://sandalo.dev>.
 
-Built using Haskell and [Hakyll](https://jaspervdj.be/hakyll/).
+Built with [Astro](https://astro.build/). Previous versions were built with [Hakyll](https://jaspervdj.be/hakyll/).
 
-## Installing dependencies
+## Building and running
 
-This project requires the [Glasgow Haskell Compiler (GHC)](https://www.haskell.org/ghc/) and the [Stack](https://docs.haskellstack.org/en/stable/) tool to build and run. Both can be installed using [GHCup](https://www.haskell.org/ghcup/).
+This project requires `npm` to build. See the following relevant commands:
 
-To install GHCup on Linux, run the following command:
-
-```
-curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
-```
-
-For other platforms or the latest information, check out the [GHCup website](https://www.haskell.org/ghcup/).
-
-## Building and running the program
-
-The `sandalo-dev` project described in `package.yaml` builds the `site` binary, which is responsible for building and serving the static website.
-
-To build and run `site`, use the following command:
-
-```
-stack run
-```
-
-This will show the available commands for the `site` binary. Some useful commands are as follows:
-
-```
-# Builds the website to `./site`
-stack run build
-
-# Builds the website and serves it to localhost:8080,
-# watching for changes in the non-Haskell files
-stack run watch
-```
+| Command                   | Action                                           |
+| :------------------------ | :----------------------------------------------- |
+| `npm install`             | Installs dependencies                            |
+| `npm run dev`             | Starts local dev server at `localhost:4321`      |
+| `npm run build`           | Build your production site to `./build/          |
+| `npm run preview`         | Preview your build locally, before deploying     |
+| `npm run deploy`          | Deploy website to <https://sandalo.dev>          |
+| `npm run deploy-preview`  | Deploy website to <https://preview.sandalo.dev>  |

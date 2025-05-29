@@ -1,0 +1,31 @@
+---
+import "../styles/global.css";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>sandalo.dev</title>
+  </head>
+
+  <body>
+    <nav class="topnav">
+      <a class="name" href="/"><b>Eduardo Sandalo Porto</b></a>
+      <div class="dont-break">
+        <a href="/">home</a>
+        <a href="/projects">projects</a>
+        <a href="/posts">posts</a>
+        <a href="/cv.pdf">cv</a>
+      </div>
+    </nav>
+
+    <main role="main">
+      <slot />
+    </main>
+
+    <footer>
+      <!-- Site generated with <a href="http://jaspervdj.be/hakyll">Hakyll</a> -->
+    </footer>
+  </body>
+</html>

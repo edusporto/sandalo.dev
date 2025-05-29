@@ -1,0 +1,32 @@
+---
+import WithLaTeX from "../components/WithLaTeX.astro";
+import BaseLayout from "./BaseLayout.astro";
+
+const { frontmatter } = Astro.props;
+const { title, subtitle, date, author } = frontmatter;
+---
+
+<WithLaTeX>
+  <BaseLayout>
+    <style>
+      .katex {
+        overflow-x: auto;
+        overflow-y: hidden;
+      }
+    </style>
+
+    <article>
+      <h1>{title}</h1>
+      <p class="subtitle">{subtitle}</p>
+
+      <section>
+        <slot />
+      </section>
+
+      <section class="header">
+        {date && `Posted on ${date}`}
+        {author && `by ${author}`}
+      </section>
+    </article>
+  </BaseLayout>
+</WithLaTeX>

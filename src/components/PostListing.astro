@@ -1,0 +1,9 @@
+---
+const { url, frontmatter } = Astro.props;
+---
+
+<li>
+  <a href={url}>{frontmatter.title}</a> -{" "}
+  {frontmatter.date}{" "}
+  {frontmatter.lang && `(in ${frontmatter.lang})`}
+</li>

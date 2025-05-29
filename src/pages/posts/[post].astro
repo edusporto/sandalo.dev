@@ -1,0 +1,26 @@
+---
+export async function getStaticPaths() {
+  const allPosts = Object.values(
+    import.meta.glob("../../posts/*/index.*", { eager: true })
+  );
+
+  return allPosts.map((post: any) => {
+    const findName = (post.file as string).match(/\/([^\/]+)\/index\..*$/);
+    if (!findName || !findName[1]) {
+      throw `Couldn't find post name for ${post.file}.`;
+    }
+
+    const name = findName[1];
+    const { frontmatter, Content } = post;
+
+    return {
+      params: { post: name },
+      props: { frontmatter, Content },
+    };
+  });
+}
+
+const { Content } = Astro.props;
+---
+
+<Content />

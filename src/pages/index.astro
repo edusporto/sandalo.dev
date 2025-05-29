@@ -1,0 +1,52 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+import { Picture } from "astro:assets";
+import myImg from "../images/eu-praga-sq.png";
+import PostList from "../components/PostList.astro";
+---
+
+<BaseLayout>
+  <Picture
+    class="profile"
+    formats={["webp"]}
+    width={286}
+    densities={[2]}
+    src={myImg}
+    alt="A picture of Eduardo in front of the St. Vitus Cathedral at Prague Castle."
+  />
+
+  <h1>Hi!</h1>
+
+  <p>
+    I recently graduated from the <a href="https://www.ime.usp.br/"
+      >University of São Paulo</a
+    > with a degree in Computer Science.
+  </p>
+
+  <p>
+    I'm interested in software engineering, formal verification, and programming
+    language research and application. I enjoy working with functional and
+    statically-typed languages, and I find it important to pursue strong
+    theoretical foundations for software development in addition to practical
+    knowledge.
+  </p>
+
+  <h2 style="clear:left;">Contact</h2>
+
+  You can find me at any of these:
+
+  <ul>
+    <li>Email: <a href="mailto:eduardo@sandalo.dev">eduardo@sandalo.dev</a></li>
+    <li>
+      LinkedIn: <a href="https://linkedin.com/in/edusporto">in/edusporto</a>
+    </li>
+    <li>GitHub: <a href="https://github.com/edusporto">@edusporto</a></li>
+  </ul>
+
+  <h2>Posts</h2>
+
+  Here are some of my posts: <PostList max="4" />
+
+  <p>...you can find more <a href="/posts.html">here</a>.</p>
+</BaseLayout>
