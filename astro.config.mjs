@@ -20,6 +20,10 @@ export default defineConfig({
     ]
   },
 
+  build: {
+    assets: 'assets'
+  },
+
   outDir: "build",
   compressHTML: false,
   integrations: [mdx()]
