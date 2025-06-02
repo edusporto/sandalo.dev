@@ -11,15 +11,15 @@ lang: Portuguese
 
 *Nota: Esta versão do artigo é um rascunho e está incompleta!*
 
-As expressões regulares, também chamadas de *regex*, compõem uma ferramenta extremamente útil no arsenal de todo programador. Usando uma curta sequência de símbolos, podemos definir padrões complexos para a realização de buscas e identificação de cadeias de caracteres em largos corpos de texto. Mas você sabia que elas estão fortemente ligadas ao assunto de "o que é **computação**", e ao trabalho de pesquisa de grandes nomes como Alan Turing e Noam Chomsky?
+As expressões regulares, também chamadas de *regex*, compõem uma ferramenta extremamente útil no arsenal de todo programador. Usando uma curta sequência de símbolos, podemos definir padrões complexos para a realização de buscas e identificação de cadeias de caracteres em textos largos. Mas, você sabia que elas estão fortemente ligadas à noção de "o que é **computação**" e ao trabalho de pesquisa de grandes nomes como Alan Turing e Noam Chomsky?
 
-Neste post, veremos de onde vêm as expressões regulares e como implementá-las a partir de suas bases teóricas, explorando um pouco da área de **teoria da computação**. O conteúdo aqui apresentado é baseado no livro [*Introduction to the Theory of Computation*](https://www.amazon.com/Introduction-Theory-Computation-Michael-Sipser/dp/113318779X), de Michael Sipser, cuja leitura recomendo veementemente caso tenha se interessado no tópico; e também baseado nas aulas da disciplina [Autômatos, Computabilidade e Complexidade (MAC0414)](https://uspdigital.usp.br/jupiterweb/obterDisciplina?sgldis=mac0414) do IME-USP.
+Neste post, veremos de onde vêm as expressões regulares e como implementá-las a partir de suas bases teóricas, explorando um pouco da área de **teoria da computação**. O conteúdo apresentado é baseado no livro *Introduction to the Theory of Computation* de Michael Sipser, cuja leitura recomendo veementemente caso tenha se interessado no tópico; e também baseado nas aulas da disciplina [Autômatos, Computabilidade e Complexidade (MAC0414)](https://uspdigital.usp.br/jupiterweb/obterDisciplina?sgldis=mac0414) do IME-USP.
 
 ## Modelo computacional
 
 > *"Se você deseja assar uma torta do zero, você precisa antes inventar o universo."* - **Carl Sagan**
 
-Para implementarmos expressões regulares, devemos antes inventar o computador. Antes que você se desespere, não vamos realmente discutir todas as peças necessárias para a criação de um computador moderno, como o processador, a placa gráfica, as interfaces de entrada e saída...
+Para implementarmos expressões regulares, devemos antes inventar o computador. No entanto, não vamos realmente discutir todas as peças necessárias para a criação de um computador moderno, como o processador, a placa gráfica, as interfaces de entrada e saída...
 
 Em vez disso, temos o interesse em modelar apenas o funcionamento básico de tais instrumentos, definindo quais são as operações fundamentais que um computador pode realizar em sua estrutura mais simples. Chamamos de *modelo computacional* toda maneira idealizada de representar computadores dentro da matemática, tendo como exemplo a famosa *máquina de Turing*, citada mais para frente.
 
@@ -62,11 +62,11 @@ Vamos ver a representação de *diagrama de estados* do sistema acima. Para faci
 </svg>
 </div>
 
-Isto é *quase* um autômato finito, como logo veremos, mas ilustra bem a ideia geral. Neste tipo de diagrama, representamos os estados do autômato usando círculos e as transições com setas. Um computador com esta definição que comece no estado **A** e processe uma fita contendo os comandos `[fecha, abre, abre]`, nesta ordem, deverá transitar entre os estados **F**, **A**, e **A** (note que uma porta aberta permanece igual quando recebe o comando `abre`).
+Isto é *quase* um autômato finito, como logo veremos, mas ilustra bem a ideia geral. Neste tipo de diagrama, representamos os estados do autômato usando círculos e as transições com setas. Um computador com esta definição, que comece no estado **A** e processe uma fita contendo os comandos `[fecha, abre, abre]`, nesta ordem, deverá transitar entre os estados **F**, **A**, e **A** (note que uma porta aberta permanece igual quando recebe o comando `abre`).
 
 Nos resta adicionar dois conceitos para completar a definição de um autômato finito: em um autômato deve haver um estado de início, indicado por uma seta cuja origem não seja outro estado; e os estados de terminação, indicados por um círculo adicional interno. O estado de início é auto-explicativo, já os estados de terminação são um pouco mais complicados.
 
-O modelo computacional que definimos deve ser capaz de *aceitar* ou *rejeitar* as fitas que recebe como entrada; se seu último estado antes do fim da fita for um estado de terminação, a fita é aceita, caso contrário é rejeitada. Dizemos que a **linguagem** de um autômato é o conjunto de todas as fitas que aceita. Isto não é muito importante para o exemplo dado acima, afinal, toda sequência de apertos de botão para controlar uma porta é válida; no entanto, esta noção será fundamental para entender expressões regulares.
+O modelo computacional que definimos deve ser capaz de *aceitar* ou *rejeitar* as fitas que recebe como entrada: se seu último estado antes do fim da fita for um estado de terminação, a fita é aceita, caso contrário é rejeitada. Dizemos que a **linguagem** de um autômato é o conjunto de todas as fitas que aceita. Isto não é muito importante para o exemplo dado acima, afinal, toda sequência de apertos de botão para controlar uma porta é válida; no entanto, esta noção será fundamental para entender expressões regulares.
 
 O autômato finito abaixo é uma versão completa do sistema controlador de uma porta eletrônica. Ele aceita todas as possíveis entradas que recebe, como `[abre]`, `[fecha]`, `[abre, fecha]`, `[fecha, abre]`, etc. Desta forma, sua linguagem é o conjunto de todas as suas fitas.
 
@@ -95,38 +95,38 @@ O autômato finito abaixo é uma versão completa do sistema controlador de uma 
 </svg>
 </div>
 
-Agora, temos bagagem suficiente para definir *o que é um autômato determinístico* de maneira formal, isto é, dentro da matemática. Não se desespere, pois tentarei detalhar o que cada um dos símbolos esquisitos utilizados significam. Definições formais são úteis para especificar conceitos de forma inequívoca, evitando que pessoas diferentes tenham interpretações distintas de um mesmo assunto. Também aproveitaremos esta definição como base do programa que iremos escrever em breve...
+Agora, temos bagagem suficiente para definir *o que é* um autômato determinístico de maneira formal, isto é, dentro da matemática. Definições formais são úteis para especificar conceitos de forma inequívoca, evitando que pessoas diferentes tenham interpretações distintas de um mesmo assunto. Também vamos aproveitar esta definição como base do programa que escreveremos em breve...
 
 Um **autômato finito** é composto por $(Q, \Sigma, \delta, q_0, F)$, onde:
 
 1. $Q$ é o conjunto de **estados**,
 
-2. $\Sigma$, pronunciado "sigma", é o conjunto do **alfabeto**,
+2. $\Sigma$ (dito *sigma*), é o conjunto do **alfabeto**,
 
-3. $\delta : Q \times \Sigma \to Q$, com seu símbolo principal "delta", é a **função de transição**,
+3. $\delta : Q \times \Sigma \to Q$, (*delta* de Q e *sigma* para Q), é a **função de transição**,
 
 4. $q_0 \in Q$ é o **estado inicial**,
 
 5. $F \subseteq Q$ é o **conjunto de estados de terminação**.
 
-Vamos discutir estes itens um por um. Já sabemos que o conjunto de estados representa as etapas de computação nas quais um computador pode estar, mas o que é este tal de *alfabeto*?
+Vamos discutir estes itens um por um. Já sabemos que o conjunto de estados representa as etapas de computação nas quais um computador pode estar, mas o que é o *alfabeto*?
 
 O **alfabeto** de um autômato é o conjunto dos símbolos que cada pedaço de sua fita pode conter. No exemplo de sistema de porta eletrônica, os símbolos possíveis de uma fita eram `abre` e `fecha`, mas poderiam ser outros, como as letras `a` e `b`.
 
-A **função de transição**, quando representada matematicamente, é uma função que recebe um estado e um símbolo do alfabeto e te devolve outro estado. Lembre do diagrama de estados do exemplo: nele, cada seta de transição começava em um estado, tinha um símbolo associado a ela, e terminava em outro estado. Matematicamente, podemos retratar estas setas como:
+A **função de transição**, quando representada matematicamente, é uma função que recebe um estado e um símbolo do alfabeto e devolve outro estado. Lembre do diagrama de estados do exemplo: nele, cada seta de transição começava em um estado, tinha um símbolo associado a ela, e terminava em outro estado. Matematicamente, podemos retratar estas setas como:
 
 - $\delta(A, \text{abre}) = A$
 - $\delta(A, \text{fecha}) = F$
 - $\delta(F, \text{abre}) = A$
 - $\delta(F, \text{fecha}) = F$
 
-O **estado inicial** é nada mais que um dos estados do conjunto de estados, como indicado pela relação de pertencimento $q_0 \in Q$. De forma semelhante, o **conjunto de estados de terminação** é um *subconjunto* de $Q$, ou seja, é um outro conjunto de estados cujos elementos todos também devem estar em $Q$.
+O **estado inicial** é nada mais que um dos estados do conjunto de estados, como indicado pela relação de pertencimento $q_0 \in Q$. De forma semelhante, o **conjunto de estados de terminação** é um *subconjunto* de $Q$, ou seja, é um conjunto de estados tal que todos os seus elementos também estão em $Q$.
 
-Tendo uma especificação de um autômato finito mais bem definida, podemos traduzí-la em código de programação.
+Tendo uma especificação de autômatos finitos bem definida, podemos traduzí-la em um programa.
 
 #### Código
 
-Todo o código deste post estará escrito na linguagem Haskell. Não se preocupe se nunca tiver tido contato com ela, tentarei explicar sua sintaxe e seu funcionamento de forma breve. Você pode testar o código deste post sem baixar o compilador da linguagem pelo [Haskell Playground](https://play.haskell.org/).
+Todo o código deste post estará escrito na linguagem Haskell. Não se preocupe se nunca tiver tido contato com ela: vamos explicar sua sintaxe e seu funcionamento de forma breve. Você pode testar o código deste post sem baixar o compilador da linguagem pelo [Haskell Playground](https://play.haskell.org/).
 
 Podemos representar nosso autômato finito da seguinte forma. Note que o nome do tipo criado é `DFA`, que vem do inglês *deterministic finite automaton*. Vale a pena mencionar que até agora estávamos estudando uma versão específica de autômato chamada *determinísica*, mas também existe o autômato finito *não determinístico*.
 
@@ -140,13 +140,15 @@ data DFA state symbol = MkDFA
   }
 ```
 
-Acima, criamos um tipo chamado `DFA` que é genérico em cima de outros dois tipos: `state` e `symbol`, que representam estados e símbolos do alfabeto respectivamente. Desta forma, para que um DFA seja criado, precisamos informar qual será o conjunto de estados e o alfabeto usado, como veremos em um exemplo daqui a pouco.
+Acima, criamos um tipo chamado `DFA` que é genérico em outros dois tipos: `state` e `symbol`, que representam os estados ($Q$) e alfabeto ($\Sigma$) respectivamente. Desta forma, para que um DFA seja criado, precisamos informar qual serão os estados e o alfabeto usado, como veremos em um exemplo daqui a pouco. Note também que em nosso programa, $Q$ e $\Sigma$ não são conjuntos, e sim *tipos*[^1]. Isto significa que precisamos obrigatoriamente fornecer os estados e o alfabeto em tempo de compilação, isto é, ao definir um `DFA`.
+
+[^1]: Tipos e conjuntos são maneiras de formar coleções de elementos. Na prática, tipos na programação definem limites em tempo de compilação (por exemplo, o tipo `int` força um programador a usar somente números inteiros em tempo de compilação), e os elementos de conjuntos existem em tempo de execução. Na matemática, esta diferença é mais complicada: tipos estão relacionados a como construímos seus elementos e conjuntos estão relacionados à coleção de elementos (assumidos pré-existentes) a partir de suas propriedades. Esta discussão é extensa e foge do propósito deste post; se quiser saber mais, veja [este link](https://cs.stackexchange.com/questions/91330/what-exactly-is-the-semantic-difference-between-set-and-type).
 
 Valores do tipo `DFA` podem ser criados usando a função construtora `MkDFA` (diz-se "*make DFA*"). Como atributos, um `DFA` deve ter:
 
-- Uma função de transição chamada `transition`, que recebe um estado e um símbolo e retorna outro estado. Note que o tipo de funções em Haskell é escrito somente usando setas – o tipo depois da última seta será o retorno da função e todos os outros serão seus parâmetros,
-- Um estado de início chamado `start`,
-- Um conjunto de estados de terminação chamado `ending`. Todas as funções associadas à manipulação de conjuntos foram importadas no comando `import qualified Data.Set as S`, e são acessadas a partir do nome `S`.
+- Uma função de transição ($\delta$) chamada `transition`, que recebe um estado e um símbolo e retorna outro estado. Note que o tipo de funções em Haskell é escrito somente usando setas – o tipo depois da última seta será o retorno da função e todos os outros serão seus parâmetros,
+- Um estado de início ($q_0$) chamado `start`,
+- Um conjunto de estados de terminação ($F$) chamado `ending`. Todas as funções associadas à manipulação de conjuntos foram importadas no comando `import qualified Data.Set as S`, e são acessadas a partir do nome `S`.
 
 
 Lembre do exemplo da porta eletrônica. Vamos representá-lo em Haskell!
@@ -191,7 +193,7 @@ Imagine que estamos lidando com uma fita cujo alfabeto contêm somente as letras
 $$\{\text{`` ''}, \text{``a''}, \text{``b''}, \text{``aa''}, \text{``ab''}, \text{``ba''}, \text{``bb''},  \text{``aaa''}, \text{``aab''}...\}$$
 <!-- </div> -->
 
-Desta forma, qualquer autômato que tenha ao menos um estado e que todos sejam de aceitação terá este conjunto como linguagem. Mas e se quisermos fazer alguma restrição? Abaixo, vemos o diagrama de estados de um autômato cuja linguagem contêm *apenas* as fitas que tenham um número par de aparições da letra 'a' e qualquer número da letra 'b'.
+Desta forma, qualquer autômato que tenha ao menos um estado e que todos sejam de aceitação terá este conjunto como linguagem. Mas, e se quisermos adicionar alguma restrição? Abaixo, vemos o diagrama de estados de um autômato cuja linguagem contêm *apenas* as fitas que tenham um número par de aparições da letra 'a' e qualquer número da letra 'b'.
 
 <div style="overflow-x: auto; overflow-y: hidden;">
 <svg width="215" height="150" style="display: block; margin: auto;" version="1.1" xmlns="http://www.w3.org/2000/svg">
@@ -242,7 +244,7 @@ example2 = MkDFA transition start endings
 
 Note que um *singleton* é um conjunto de apenas um elemento. Podemos usar o programa que descreve este autômato para verificar, de forma automática, se uma fita (ou *string*) pertence à sua linguagem; mas a questão é, como fazemos isso?
 
-Vamos precisar escrever uma função que percorre os estados do modelo, alternando-os a partir das regras da função de transição. Em pseudo-código de uma linguagem imperativa tradicional, faríamos algo similar a isto:
+Necessitamos escrever uma função que percorre os estados do modelo, alternando-os a partir das regras da função de transição. Em pseudo-código de uma linguagem imperativa tradicional, faríamos algo similar a isto:
 
 <div style="overflow-x: auto; overflow-y: hidden;">
 <pre style="margin: 0">
@@ -254,7 +256,7 @@ run(transition, start, tape):
 </pre>
 </div>
 
-Este padrão é muito comum quando escrevendo programas, e na progrmação funcional o chamamos de **fold** (dobra), já que seu comportamento é de "dobrar" sua entrada aos poucos até terminar com um único valor final. Em Haskell, a assinatura do `fold` dobrando elementos "da esquerda para a direita" é a seguinte:
+Este padrão de código é muito comum, e na progrmação funcional o chamamos de **fold** (dobra), já que seu comportamento é de "dobrar" sua entrada aos poucos até terminar com um único valor final. Em Haskell, a assinatura do `fold` dobrando elementos "da esquerda para a direita" é a seguinte:
 
 ```haskell
 foldl :: (b -> a -> b) -> b -> [a] -> b
@@ -265,15 +267,15 @@ foldl :: (b -> a -> b) -> b -> [a] -> b
 A partir desta definição, a função que executa um autômato finito para cada fita diferente pode ser escrita assim:
 
 ```haskell
-run :: DFA state symbol -> [symbol] -> state
-run dfa tape = foldl (transition dfa) (start dfa) tape
+runDfa :: DFA state symbol -> [symbol] -> state
+runDfa dfa tape = foldl (transition dfa) (start dfa) tape
 ```
 
 Os trechos `(transition dfa)` e `(start dfa)` extraem a função de transição e o estado inicial de um autômato, respectivamente. Após o fim da execução, precisamos saber se o estado final é de aceitação para descobrir se uma dada fita é parte da linguagem do autômato.
 
 ```haskell
 accepts :: Ord state => DFA state symbol -> [symbol] -> Bool
-accepts dfa tape = run dfa tape `S.member` endings dfa
+accepts dfa tape = runDfa dfa tape `S.member` endings dfa
 ```
 
 Alguns detalhes de notação:
@@ -287,8 +289,8 @@ Para testar as funções que acabamos de definir com alguns exemplos, definimos 
 
 ```haskell
 main = do
-  print (run example2 [A, A, B, A, B, A]) -- imprime Q1
-  print (run example2 [A, A, B, A, B, B]) -- imprime Q2
+  print (runDfa example2 [A, A, B, A, B, A]) -- imprime Q1
+  print (runDfa example2 [A, A, B, A, B, B]) -- imprime Q2
   print (example2 `accepts` [A, A, B, A, B, A]) -- imprime True
   print (example2 `accepts` [A, A, B, A, B, B]) -- imprime False
 ```

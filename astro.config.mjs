@@ -17,7 +17,10 @@ export default defineConfig({
       rehypeKatex,
       [rehypeFigure, { className: "go-center" }],
       rehypeOverflowMath
-    ]
+    ],
+    remarkRehype: {
+      footnoteLabel: '\0'
+    }
   },
 
   build: {
