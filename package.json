@@ -11,8 +11,8 @@
     "deploy-preview": "astro build && ./deploy/deploy-preview.sh"
   },
   "dependencies": {
-    "@astrojs/mdx": "^4.2.6",
-    "astro": "^5.7.13",
+    "@astrojs/mdx": "^4.3.0",
+    "astro": "^5.8.1",
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0"
   }
