@@ -103,7 +103,7 @@ Um **autômato finito** é composto por $(Q, \Sigma, \delta, q_0, F)$, onde:
 
 2. $\Sigma$ (dito *sigma*), é o conjunto do **alfabeto**,
 
-3. $\delta : Q \times \Sigma \to Q$, (*delta* de Q e *sigma* para Q), é a **função de transição**,
+3. $\delta : Q \times \Sigma \to Q$, (*delta* de *Q* e *sigma* para *Q*), é a **função de transição**,
 
 4. $q_0 \in Q$ é o **estado inicial**,
 
@@ -113,7 +113,7 @@ Vamos discutir estes itens um por um. Já sabemos que o conjunto de estados repr
 
 O **alfabeto** de um autômato é o conjunto dos símbolos que cada pedaço de sua fita pode conter. No exemplo de sistema de porta eletrônica, os símbolos possíveis de uma fita eram `abre` e `fecha`, mas poderiam ser outros, como as letras `a` e `b`.
 
-A **função de transição**, quando representada matematicamente, é uma função que recebe um estado e um símbolo do alfabeto e devolve outro estado. Lembre do diagrama de estados do exemplo: nele, cada seta de transição começava em um estado, tinha um símbolo associado a ela, e terminava em outro estado. Matematicamente, podemos retratar estas setas como:
+A **função de transição** recebe um estado e um símbolo do alfabeto e devolve outro estado. Lembre do diagrama de estados do exemplo: nele, cada seta de transição começava em um estado, tinha um símbolo associado a ela, e terminava em outro estado. Em linguagem matemática, podemos retratar estas setas como:
 
 - $\delta(A, \text{abre}) = A$
 - $\delta(A, \text{fecha}) = F$
