@@ -1,4 +1,5 @@
 ---
+import ThemeIcon from "../components/ThemeIcon.astro";
 import "../styles/global.css";
 
 const { pageTitle } = Astro.props;
@@ -12,15 +13,18 @@ const { pageTitle } = Astro.props;
   </head>
 
   <body>
-    <nav class="topnav">
-      <a class="name" href="/"><b>Eduardo Sandalo Porto</b></a>
-      <div class="dont-break">
-        <a href="/">home</a>
-        <a href="/projects">projects</a>
-        <a href="/posts">posts</a>
-        <a href="/cv.pdf">cv</a>
-      </div>
-    </nav>
+    <header>
+      <nav class="topnav">
+        <a class="name" href="/"><b>Eduardo Sandalo Porto</b></a>
+        <div class="dont-break">
+          <a href="/">home</a>
+          <a href="/projects">projects</a>
+          <a href="/posts">posts</a>
+          <a href="/cv.pdf">cv</a>
+          <ThemeIcon />
+        </div>
+      </nav>
+    </header>
 
     <main role="main">
       <slot />

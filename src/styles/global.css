@@ -1,6 +1,22 @@
 /* ==================================== */
 /* Definitions */
 :root {
+  --c1: #FFFFFF;
+  --c2: #F5F5F5;
+  --c3: #ded5d5;
+  --c4: #8d8686;
+  --c5: #757575;
+  --c6: #5b5757;
+  --c7: #212121;
+  --c8: #000000;
+
+  --p1: #943B07;
+  --p2: #B5520B;
+  --p3: #D97726;
+  --p4: #D35400;
+}
+
+.dark {
   --c1: #100F16;
   --c2: #21202B;
   --c3: #383745;
@@ -44,6 +60,7 @@
 /* ==================================== */
 /* Body */
 body {
+  max-width: 80ch;
   background: var(--c2);
   color: var(--c7);
   font-family: Lato, sans-serif;
@@ -51,6 +68,8 @@ body {
 
   fill: var(--c7);
   stroke: var(--c7);
+
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 code {
@@ -63,7 +82,7 @@ code {
   /* Their base font size is 1em. */
   white-space: nowrap;
   color: var(--c6);
-  box-shadow: 1px 1px 5px var(--c1);
+  box-shadow: 1px 1px 3px var(--c1);
 }
 
 pre {
@@ -86,11 +105,22 @@ a {
 
 /* ==================================== */
 /* Top navigation */
+header {
+  margin: 0;
+}
+
 .topnav {
   overflow: hidden;
   margin-top: 12px;
   padding: 16px 0px 16px 0px;
   /* background-color: var(--c1); */
+
+  /* Enable Flexbox on the parent container */
+  /* display: flex; */
+  /* Distribute space: push the last item to the right */
+  /* justify-content: space-between;  */
+  /* Vertically align items in the center */
+  /* align-items: center; */
 }
 
 .topnav a {
@@ -113,6 +143,7 @@ a {
 .topnav .dont-break {
   display: inline-block;
   margin-bottom: -5px;
+  vertical-align: bottom;
 }
 
 /* ==================================== */
@@ -133,7 +164,9 @@ a:active {
 /* Headers */
 .header {
   /* font-style: italic; */
-  color: var(--c5)
+  color: var(--c5);
+  fill: var(--c5) !important;
+  stroke: var(--c5) !important;
 }
 
 /* ==================================== */
@@ -167,10 +200,6 @@ footer {
   body {
     width: 90%;
     margin: 0 auto;
-  }
-
-  header {
-    margin: 2.0rem 0;
   }
 
   footer {
@@ -218,10 +247,6 @@ footer {
     margin: 0 auto;
   }
 
-  header {
-    margin: 3.2rem 0;
-  }
-
   footer {
     text-align: right;
   }
@@ -259,17 +284,13 @@ footer {
 
 @media (min-width: 600px) {
   body {
-    width: 90%;
+    /* max-width: 600px; */
     margin: 0 auto;
     /* padding: 0 5%; */
   }
 
   nav a {
     display: inline-block;
-  }
-
-  header {
-    margin: 3.2rem 0;
   }
 
   footer {
@@ -309,14 +330,9 @@ footer {
 
 @media (min-width: 1050px) {
   body {
-    width: 60rem;
+    /* max-width: 50rem; */
     margin: 0 auto;
     /* padding: 0; */
-  }
-
-  header {
-    margin: 0 0 3rem;
-    padding: 1.2rem 0;
   }
 
   footer {

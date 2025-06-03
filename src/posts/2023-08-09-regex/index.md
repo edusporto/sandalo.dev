@@ -260,12 +260,12 @@ run(transition, start, tape):
 Este padrão de código é muito comum, e na progrmação funcional o chamamos de **fold** (dobra), já que seu comportamento é de "dobrar" sua entrada aos poucos até terminar com um único valor final. Em Haskell, a assinatura do `fold` dobrando elementos da esquerda para a direita é a seguinte:
 
 ```haskell
-foldl :: (b -> a -> b) -> b -> [a] -> b
+foldl :: forall a b. (b -> a -> b) -> b -> [a] -> b
 ```
 
-`foldl` recebe uma função que acumulará um resultado do tipo genérico `b` transformando-o a partir de cada elemento `a`, um valor inicial do tipo `b`, e uma lista de elementos do tipo `a`, retornando no final o resultado desta acumulação.
+`foldl` recebe uma função que acumulará o estado atual do tipo genérico `b` com o valor atual do tipo genérico `a`, recebe também um estado inicial do tipo `b`, e uma lista de elementos do tipo `a`. No final, `foldl` retorna o resultado desta acumulação para cada elemento da lista.
 
-A partir desta definição, a função que executa um autômato finito para cada fita diferente pode ser escrita assim:
+A partir desta definição, a função que executa um autômato finito `dfa` com uma fita `tape` pode ser escrita assim:
 
 ```haskell
 runDfa :: DFA state symbol -> [symbol] -> state
@@ -308,4 +308,4 @@ Estamos quase chegando em expressões regulares! Só nos resta entender um últi
 
 <!-- ## Conclusão -->
 
-![An automaton that prints "Na-Na-Na-... Batman!"](./images/nanana.png "*Na-Na-Na-Na-Na-... Batman!*")
+![An automaton that prints "Na-Na-Na-... Batman!"](./images/nanana.png "Na-Na-Na-Na-Na-... Batman!")
