@@ -11,8 +11,8 @@ This project requires `npm` to build. See the following relevant commands:
 | Command                   | Action                                           |
 | :------------------------ | :----------------------------------------------- |
 | `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./build/          |
-| `npm run preview`         | Preview your build locally, before deploying     |
+| `npm run dev`             | Starts local dev server at `localhost:8080`      |
+| `npm run build`           | Build production site to `./build/`              |
+| `npm run preview`         | Preview build locally, before deploying          |
 | `npm run deploy`          | Deploy website to <https://sandalo.dev>          |
 | `npm run deploy-preview`  | Deploy website to <https://preview.sandalo.dev>  |
