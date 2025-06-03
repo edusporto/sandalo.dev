@@ -20,6 +20,12 @@ export default defineConfig({
     ],
     remarkRehype: {
       footnoteLabel: '\0'
+    },
+    shikiConfig: {
+      themes: {
+        light: 'github-light',
+        dark: 'github-dark'
+      }
     }
   },
 
