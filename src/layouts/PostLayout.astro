@@ -8,13 +8,6 @@ const { title, subtitle, date, author } = frontmatter;
 
 <WithLaTeX>
   <BaseLayout pageTitle={title}>
-    <style>
-      .katex {
-        overflow-x: auto;
-        overflow-y: hidden;
-      }
-    </style>
-
     <article>
       <h1>{title}</h1>
       <p class="subtitle">{subtitle}</p>
