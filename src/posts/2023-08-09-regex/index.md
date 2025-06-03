@@ -308,4 +308,4 @@ Estamos quase chegando em expressões regulares! Só nos resta entender um últi
 
 <!-- ## Conclusão -->
 
-![*Na-Na-Na-Na-Na... Batman!*](./images/nanana.png "*Na-Na-Na-Na-Na... Batman!*")
+![An automaton that prints "Na-Na-Na-... Batman!"](./images/nanana.png "*Na-Na-Na-Na-Na-... Batman!*")

@@ -55,7 +55,7 @@ body {
 
 code {
   background-color: var(--c3);
-  padding: 0.2em 0.2em;
+  padding: 0.15em 0.35em;
   border-radius: 3px;
   font-size: 14px;
   /* Astro uses the following font-size on their website. */
