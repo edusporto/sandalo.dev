@@ -123,6 +123,11 @@ header {
   /* align-items: center; */
 }
 
+.topnav svg {
+  fill: var(--c6);
+  stroke: var(--c6);
+}
+
 .topnav a {
   float: left;
   color: var(--c6) !important;
@@ -165,8 +170,6 @@ a:active {
 .header {
   /* font-style: italic; */
   color: var(--c5);
-  fill: var(--c5) !important;
-  stroke: var(--c5) !important;
 }
 
 /* ==================================== */
