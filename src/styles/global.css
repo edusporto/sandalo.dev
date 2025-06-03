@@ -53,13 +53,27 @@ body {
   stroke: var(--c7);
 }
 
-pre {
-  font-size: 16px;
-  padding: 8px;
+code {
+  background-color: var(--c3);
+  padding: 0.2em 0.2em;
+  border-radius: 3px;
+  font-size: 14px;
+  /* Astro uses the following font-size on their website. */
+  /* font-size: .8125rem */
+  /* Their base font size is 1em. */
+  white-space: nowrap;
+  color: var(--c6);
+  box-shadow: 1px 1px 5px var(--c1);
 }
 
-code {
+pre {
   font-size: 16px;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+pre code {
+  all: unset;
 }
 
 a {

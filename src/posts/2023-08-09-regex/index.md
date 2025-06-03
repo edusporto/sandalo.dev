@@ -23,7 +23,7 @@ Para implementarmos expressões regulares, devemos antes inventar o computador. 
 
 Em vez disso, temos o interesse em modelar apenas o funcionamento básico de tais instrumentos, definindo quais são as operações fundamentais que um computador pode realizar em sua estrutura mais simples. Chamamos de *modelo computacional* toda maneira idealizada de representar computadores dentro da matemática, tendo como exemplo a famosa *máquina de Turing*, citada mais para frente.
 
-### Autômato finito
+### Autômato finito determinístico (DFA)
 
 Um dos modelos computacionais mais simples é o **autômato finito**. A estrutura de um autômato é baseada em três componentes:
 
@@ -95,7 +95,9 @@ O autômato finito abaixo é uma versão completa do sistema controlador de uma 
 </svg>
 </div>
 
-Agora, temos bagagem suficiente para definir *o que é* um autômato determinístico de maneira formal, isto é, dentro da matemática. Definições formais são úteis para especificar conceitos de forma inequívoca, evitando que pessoas diferentes tenham interpretações distintas de um mesmo assunto. Também vamos aproveitar esta definição como base do programa que escreveremos em breve...
+Um autômato finito que não possua "ambiguidade", isto é, todos os seus estados possuem exatamente uma seta para cada transição possível, é chamado de **determinístico**. A representação acima é de um autômato finito determinístico, já que existe exatamente uma transição de `abre` e `fecha` para cada estado (`A` e `F`).
+
+Agora, temos bagagem suficiente para definir *o que é* um autômato finito determinístico de maneira formal, isto é, dentro da matemática. Definições formais são úteis para especificar conceitos de forma inequívoca, evitando que pessoas diferentes tenham interpretações distintas de um mesmo assunto. Também vamos aproveitar esta definição como base do programa que escreveremos em breve...
 
 Um **autômato finito** é composto por $(Q, \Sigma, \delta, q_0, F)$, onde:
 
@@ -128,7 +130,8 @@ Tendo uma especificação de autômatos finitos bem definida, podemos traduzí-l
 
 Todo o código deste post estará escrito na linguagem Haskell. Não se preocupe se nunca tiver tido contato com ela: vamos explicar sua sintaxe e seu funcionamento de forma breve. Você pode testar o código deste post sem baixar o compilador da linguagem pelo [Haskell Playground](https://play.haskell.org/).
 
-Podemos representar nosso autômato finito da seguinte forma. Note que o nome do tipo criado é `DFA`, que vem do inglês *deterministic finite automaton*. Vale a pena mencionar que até agora estávamos estudando uma versão específica de autômato chamada *determinísica*, mas também existe o autômato finito *não determinístico*.
+Podemos representar nosso autômato finito da seguinte forma. O tipo criado abaixo tem como nome `DFA`, que vem do inglês *deterministic finite automaton*.
+<!-- Vale a pena mencionar que até agora estávamos estudando uma versão específica de autômato chamada *determinísica*, mas também existe o autômato finito *não determinístico*. -->
 
 ```haskell
 import qualified Data.Set as S
@@ -142,7 +145,7 @@ data DFA state symbol = MkDFA
 
 Acima, criamos um tipo chamado `DFA` que é genérico em outros dois tipos: `state` e `symbol`, que representam os estados ($Q$) e alfabeto ($\Sigma$) respectivamente. Desta forma, para que um DFA seja criado, precisamos informar qual serão os estados e o alfabeto usado, como veremos em um exemplo daqui a pouco. Note também que em nosso programa, $Q$ e $\Sigma$ não são conjuntos, e sim *tipos*[^1]. Isto significa que precisamos obrigatoriamente fornecer os estados e o alfabeto em tempo de compilação, isto é, ao definir um `DFA`.
 
-[^1]: Tipos e conjuntos são maneiras de formar coleções de elementos. Na prática, tipos na programação definem limites em tempo de compilação (por exemplo, o tipo `int` força um programador a usar somente números inteiros em tempo de compilação), e os elementos de conjuntos existem em tempo de execução. Na matemática, esta diferença é mais complicada: tipos estão relacionados a como construímos seus elementos e conjuntos estão relacionados à coleção de elementos (assumidos pré-existentes) a partir de suas propriedades. Esta discussão é extensa e foge do propósito deste post; se quiser saber mais, veja [este link](https://cs.stackexchange.com/questions/91330/what-exactly-is-the-semantic-difference-between-set-and-type).
+[^1]: Tipos e conjuntos são maneiras de formar coleções de elementos. Na prática, tipos na programação definem limites em tempo de compilação (por exemplo, o tipo `int` força um programador a usar somente números inteiros em tempo de compilação), e os elementos de conjuntos existem em tempo de execução. Na matemática, esta diferença é mais complicada: tipos estão relacionados a como construímos seus elementos e conjuntos agrupam seus elementos (assumidos pré-existentes) a partir de suas propriedades. Esta discussão é extensa e foge do propósito deste post; se quiser saber mais, veja [este link](https://cs.stackexchange.com/questions/91330/what-exactly-is-the-semantic-difference-between-set-and-type).
 
 Valores do tipo `DFA` podem ser criados usando a função construtora `MkDFA` (diz-se "*make DFA*"). Como atributos, um `DFA` deve ter:
 
@@ -246,17 +249,15 @@ Note que um *singleton* é um conjunto de apenas um elemento. Podemos usar o pro
 
 Necessitamos escrever uma função que percorre os estados do modelo, alternando-os a partir das regras da função de transição. Em pseudo-código de uma linguagem imperativa tradicional, faríamos algo similar a isto:
 
-<div style="overflow-x: auto; overflow-y: hidden;">
-<pre style="margin: 0">
+```text
 run(transition, start, tape):
   state <- start
   for symbol in tape:
     state <- transition(state, symbol)
   return state
-</pre>
-</div>
+```
 
-Este padrão de código é muito comum, e na progrmação funcional o chamamos de **fold** (dobra), já que seu comportamento é de "dobrar" sua entrada aos poucos até terminar com um único valor final. Em Haskell, a assinatura do `fold` dobrando elementos "da esquerda para a direita" é a seguinte:
+Este padrão de código é muito comum, e na progrmação funcional o chamamos de **fold** (dobra), já que seu comportamento é de "dobrar" sua entrada aos poucos até terminar com um único valor final. Em Haskell, a assinatura do `fold` dobrando elementos da esquerda para a direita é a seguinte:
 
 ```haskell
 foldl :: (b -> a -> b) -> b -> [a] -> b
@@ -271,7 +272,7 @@ runDfa :: DFA state symbol -> [symbol] -> state
 runDfa dfa tape = foldl (transition dfa) (start dfa) tape
 ```
 
-Os trechos `(transition dfa)` e `(start dfa)` extraem a função de transição e o estado inicial de um autômato, respectivamente. Após o fim da execução, precisamos saber se o estado final é de aceitação para descobrir se uma dada fita é parte da linguagem do autômato.
+Os trechos `(transition dfa)` e `(start dfa)` extraem a função de transição e o estado inicial de um autômato, respectivamente. Lembre que o tipo da função de transição é `state -> symbol -> state`, e dessa forma, encaixa no tipo `b -> a -> b`. Após o fim da execução, precisamos saber se o estado final é de aceitação para descobrir se uma dada fita é parte da linguagem do autômato.
 
 ```haskell
 accepts :: Ord state => DFA state symbol -> [symbol] -> Bool
@@ -308,10 +309,3 @@ Estamos quase chegando em expressões regulares! Só nos resta entender um últi
 <!-- ## Conclusão -->
 
 ![*Na-Na-Na-Na-Na... Batman!*](./images/nanana.png "*Na-Na-Na-Na-Na... Batman!*")
-
-<!-- <figure>
-<img src="./images/nanana.png" alt="Na-Na-Na-Na-Na... Batman!" class="go-center">
-<figcaption aria-hidden="true">
-<em>Na-Na-Na-Na-Na... Batman!</em>
-</figcaption>
-</figure> -->
