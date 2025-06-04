@@ -175,23 +175,6 @@ header {
   flex-wrap: wrap;
 }
 
-/* Add styles for the ThemeIcon button for positioning */
-#themeToggle {
-  /* margin-left: auto; */
-  /* ADDED: Pushes the icon to the right of other items in .dont-break */
-  /* The following are good for ensuring the button itself aligns its content well,
-     and behaves predictably in a flex context. Styles are from ThemeIcon.astro,
-     margin-left is the key addition for layout. */
-  /* display: flex; */
-  /* Ensures SVG is centered if button has padding/specific height */
-  /* align-items: center; */
-  /* Vertically aligns SVG within the button */
-  /* padding: 0; from ThemeIcon.astro is good */
-  /* background: none; from ThemeIcon.astro */
-  /* border: 0; from ThemeIcon.astro */
-  /* cursor: pointer; from ThemeIcon.astro */
-}
-
 /* ==================================== */
 /* Links */
 a:link {
