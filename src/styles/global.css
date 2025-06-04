@@ -1,3 +1,5 @@
+/* global.css */
+
 /* ==================================== */
 /* Definitions */
 :root {
@@ -58,26 +60,27 @@
 }
 
 /* ==================================== */
-/* Normal size text for mobile portrait */
 html {
   -webkit-text-size-adjust: 100%;
   -moz-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
+  margin-left: calc(100vw - 100%);
+  margin-right: 0;
 }
 
 /* ==================================== */
 /* Body */
 body {
+  margin: 0 auto;
   max-width: 80ch;
   background: var(--c2);
   color: var(--c7);
   font-family: Lato, sans-serif;
   font-size: 18px;
-
   fill: var(--c7);
   stroke: var(--c7);
-
   transition: background-color 0.2s ease, color 0.2s ease;
+  overflow-wrap: break-word;
 }
 
 code {
@@ -85,10 +88,8 @@ code {
   padding: 0.15em 0.35em;
   border-radius: 3px;
   font-size: 14px;
-  /* Astro uses the following font-size on their website. */
-  /* font-size: .8125rem */
-  /* Their base font size is 1em. */
-  white-space: nowrap;
+  /* white-space: nowrap; */
+  overflow-wrap: break-word;
   color: var(--c6);
   box-shadow: 1px 1px 3px var(--c1);
 }
@@ -118,17 +119,23 @@ header {
 }
 
 .topnav {
-  overflow: hidden;
+  /* overflow: hidden; */
+  /* REMOVE or COMMENT OUT: Flexbox will manage overflow differently */
   margin-top: 12px;
   padding: 16px 0px 16px 0px;
-  /* background-color: var(--c1); */
 
-  /* Enable Flexbox on the parent container */
-  /* display: flex; */
-  /* Distribute space: push the last item to the right */
-  /* justify-content: space-between;  */
+  /* Enable Flexbox */
+  display: flex;
+  /* ADDED */
+  /* Distribute space: .name on left, .dont-break on right */
+  justify-content: space-between;
+  /* ADDED */
   /* Vertically align items in the center */
-  /* align-items: center; */
+  align-items: center;
+  /* ADDED */
+  /* Allow .dont-break to wrap below .name on small screens */
+  flex-wrap: wrap;
+  /* ADDED */
 }
 
 .topnav svg {
@@ -137,10 +144,12 @@ header {
 }
 
 .topnav a {
-  float: left;
+  /* float: left; */
+  /* REMOVE or COMMENT OUT: No longer needed with Flexbox */
   color: var(--c6) !important;
   text-align: center;
   margin-right: 14px;
+  /* This provides spacing between nav items */
   text-decoration: none;
   font-size: 21px;
 }
@@ -151,12 +160,36 @@ header {
 
 .topnav a.name {
   color: var(--p4) !important;
+  /* .name will also have margin-right: 14px from the rule above, which is usually fine. */
 }
 
 .topnav .dont-break {
-  display: inline-block;
-  margin-bottom: -5px;
-  vertical-align: bottom;
+  /* Traditional way */
+  /* display: inline-block; */
+  /* margin-bottom: -5px; */
+  /* vertical-align: bottom; */
+
+  /* Move items to the right with flexbox */
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Add styles for the ThemeIcon button for positioning */
+#themeToggle {
+  /* margin-left: auto; */
+  /* ADDED: Pushes the icon to the right of other items in .dont-break */
+  /* The following are good for ensuring the button itself aligns its content well,
+     and behaves predictably in a flex context. Styles are from ThemeIcon.astro,
+     margin-left is the key addition for layout. */
+  /* display: flex; */
+  /* Ensures SVG is centered if button has padding/specific height */
+  /* align-items: center; */
+  /* Vertically aligns SVG within the button */
+  /* padding: 0; from ThemeIcon.astro is good */
+  /* background: none; from ThemeIcon.astro */
+  /* border: 0; from ThemeIcon.astro */
+  /* cursor: pointer; from ThemeIcon.astro */
 }
 
 /* ==================================== */
@@ -176,7 +209,6 @@ a:active {
 /* ==================================== */
 /* Headers */
 .header {
-  /* font-style: italic; */
   color: var(--c5);
 }
 
@@ -211,7 +243,6 @@ footer {
 .dark .astro-code span {
   color: var(--shiki-dark) !important;
   background-color: var(--shiki-dark-bg) !important;
-  /* Optional, if you also want font styles */
   font-style: var(--shiki-dark-font-style) !important;
   font-weight: var(--shiki-dark-font-weight) !important;
   text-decoration: var(--shiki-dark-text-decoration) !important;
@@ -231,15 +262,6 @@ footer {
 
   figure {
     margin: 0;
-  }
-
-  .logo {
-    text-align: center;
-    margin: 1rem auto 1.0em;
-  }
-
-  .logo a {
-    font-size: 2.4rem;
   }
 
   .profile {
@@ -267,24 +289,13 @@ footer {
 @media (min-width: 380px) {
   body {
     width: 90%;
-    margin: 0 auto;
   }
 
   footer {
     text-align: right;
   }
 
-  .logo {
-    text-align: center;
-    margin: 1rem auto 2rem;
-  }
-
-  .logo a {
-    font-size: 2.4rem;
-  }
-
   .profile {
-    /* width: 70%; */
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -306,12 +317,6 @@ footer {
 }
 
 @media (min-width: 600px) {
-  body {
-    /* max-width: 600px; */
-    margin: 0 auto;
-    /* padding: 0 5%; */
-  }
-
   nav a {
     display: inline-block;
   }
@@ -320,20 +325,10 @@ footer {
     text-align: right;
   }
 
-  .logo {
-    text-align: center;
-    margin: 1rem auto 2rem;
-  }
-
-  .logo a {
-    font-size: 2.4rem;
-  }
-
   .profile {
     float: left;
     margin-right: 1.6rem;
     margin-bottom: 1.3rem;
-    /* width: 30%; */
   }
 
   .go-left {
@@ -352,24 +347,8 @@ footer {
 }
 
 @media (min-width: 1050px) {
-  body {
-    /* max-width: 50rem; */
-    margin: 0 auto;
-    /* padding: 0; */
-  }
-
   footer {
     text-align: right;
-  }
-
-  .logo {
-    margin: 0;
-    text-align: left;
-  }
-
-  .logo a {
-    float: left;
-    font-size: 1.8rem;
   }
 
   .profile {
