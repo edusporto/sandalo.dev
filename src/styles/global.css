@@ -158,6 +158,11 @@ header {
   color: var(--c8) !important;
 }
 
+.topnav svg:hover {
+  fill: var(--c8) !important;
+  stroke: var(--c8) !important;
+}
+
 .topnav a.name {
   color: var(--p4) !important;
   /* .name will also have margin-right: 14px from the rule above, which is usually fine. */
