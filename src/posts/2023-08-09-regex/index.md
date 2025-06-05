@@ -23,7 +23,7 @@ Para implementarmos expressões regulares, devemos antes inventar o computador. 
 
 Em vez disso, temos o interesse em modelar apenas o funcionamento básico de tais instrumentos, definindo quais são as operações fundamentais que um computador pode realizar em sua estrutura mais simples. Chamamos de *modelo computacional* toda maneira idealizada de representar computadores dentro da matemática, tendo como exemplo a famosa *máquina de Turing*, citada mais para frente.
 
-### Autômato finito determinístico (DFA)
+## Autômato finito determinístico (DFA)
 
 Um dos modelos computacionais mais simples é o **autômato finito**. A estrutura de um autômato é baseada em três componentes:
 
@@ -126,7 +126,7 @@ O **estado inicial** é nada mais que um dos estados do conjunto de estados, com
 
 Tendo uma especificação de autômatos finitos bem definida, podemos traduzí-la em um programa.
 
-#### Código
+### Código
 
 Todo o código deste post estará escrito na linguagem Haskell. Não se preocupe se nunca tiver tido contato com ela: vamos explicar sua sintaxe e seu funcionamento de forma breve. Você pode testar o código deste post sem baixar o compilador da linguagem pelo [Haskell Playground](https://play.haskell.org/).
 
@@ -184,7 +184,7 @@ Acima, criamos um valor de `DFA` parametrizado pelos tipos `DoorState` e `DoorSy
 
 A função `transition` é definida usando a técnica de *pattern matching* em cima de seus parâmetros: quando recebe um valor `Open` e um `DoOpen`, retorna `Open`; quando recebe `Open` e `DoClose`, retorna `Closed`; e assim por diante. `start` é nada mais que o estado no qual o sistema começa e `endings` é um conjunto criado a partir da lista `[Open, Closed]`.
 
-### Linguagens regulares
+## Linguagens regulares
 
 Até este momento, estávamos pensando em autômatos como um modelo abstrato para sistemas concretos; a partir de agora, vamos focar um pouco mais nas abstrações, com os holofotes no conceito de *linguagem* brevemente mencionado.
 
@@ -294,11 +294,7 @@ main = do
   print (example2 `accepts` [A, A, B, A, B, B]) -- imprime False
 ```
 
-### Autômato finito não-determinístico
-
-Os autômatos determinísticos que vimos até então, apesar de úteis para modelar alguns sistemas simples, possuem uma restrição importante: cada estado deve definir todas as suas transições possíveis, e cada transição deve ser única. Desta forma, a execução do autômato não pode "explorar" caminhos diferentes.
-
-Vamos ver um exemplo mais próximo do nosso objetivo final: expressões regulares. Imagine que queremos formar um sistema capaz de decidir se uma palavra (ou uma *string*) é igual a "casa" ou "carro". Como vimos anteriormente, uma linguagem regular é o conjunto de entradas aceita por um autômato. Desta forma, vamos construir um autômato determinístico finito cuja linguagem é $\{\text{``casa''}, \text{``carro''}\}$. Seu alfabeto é composto por todas as letras da língua portuguesa. Portanto, todo estado deverá conter 26 transições - uma para cada letra.
+Vamos ver um exemplo mais próximo do objetivo final de expressões regulares. Imagine que queremos formar um sistema capaz de decidir se uma palavra (ou uma *string*) é igual a "casa" ou "carro". Como vimos anteriormente, uma linguagem regular é o conjunto de entradas aceita por um autômato. Desta forma, vamos construir um autômato determinístico finito cuja linguagem é $\{\text{``casa''}, \text{``carro''}\}$. Seu alfabeto é composto por todas as letras da língua portuguesa. Portanto, todo estado deverá conter 26 transições -- uma para cada letra.
 
 <div style="overflow-x: auto; overflow-y: hidden;">
 <svg width="700" height="350" style="display: block; margin: auto" version="1.1" xmlns="http://www.w3.org/2000/svg">
@@ -369,17 +365,66 @@ Vamos ver um exemplo mais próximo do nosso objetivo final: expressões regulare
 </svg>
 </div>
 
-No autômato acima, as transições com mais de um símbolo do alfabeto representam múltiplas transições - uma para cada símbolo. As transições com reticiências retrata ou todos os caracteres possíveis, ou todos os caracteres não incluídos em outras transições. Para que possamos lidar com palavras que não são nem "casa" nem "carro", precisamos criar um estado de falha `fail`, do qual não é possível escapar.
+No autômato acima, as transições com mais de um símbolo do alfabeto representam múltiplas transições, adicionando uma para cada símbolo. As transições com reticiências retratam ou todos os caracteres possíveis, ou todos os caracteres não incluídos em outras transições. Para que possamos lidar com palavras que não são nem "casa" nem "car
 
-A necessidade de representar cada transição ao estado de falha é certamente inconveniente.
+Abaixo, temos a representação em Haskell deste mesmo autômato.
 
----
+```haskell
+example3 :: DFA String Char
+example3 = MkDFA transition start endings
+  where
+    transition :: String -> Char -> String
+    transition "q0"  'c' = "q1"
+    transition "q1"  'a' = "q2"
+    transition "q2"  's' = "q3"
+    transition "q2"  'r' = "q4"
+    transition "q3"  'a' = "q5"
+    transition "q4"  'r' = "q6"
+    transition "q6"  'o' = "q7"
+    transition "q0"   _  = "fail"
+    transition "q1"   _  = "fail"
+    transition "q2"   _  = "fail"
+    transition "q3"   _  = "fail"
+    transition "q4"   _  = "fail"
+    transition "q6"   _  = "fail"
+    transition "fail" _  = "fail"
+    transition   _    _  = "fail"
+    start :: String
+    start = "q0"
+    endings :: S.Set String
+    endings = S.fromList ["q5", "q7"]
+```
 
-<!-- ## Operações regulares
+Novamente, usamos *pattern matching* para representar as transições. Os padrões com *underscore* `_` significam "todos os outros casos". Por exemplo, a linha `transition "q0" _ = "fail"` significa "transições de `"q0"` com qualquer símbolo além de `"c"` (definido anteriormente) resultará em `"fail"`".
 
-Conforme trilhamos o caminho até chegar em expressões regulares, vamos aos poucos nos distanciando dos autômatos finitos -->
+Note que o conjunto de estados de `example3` é o conjunto de todas as *strings*, e o alfabeto é o conjunto de todos os caracteres. Desta forma, tecnicamente qualquer string é válida como estado, e qualquer caracter é válido como transição. Para evitar problemas, colocamos a linha `transition _ _ = "fail"`, levando qualquer estado ou transição indesejada ao estado de falha.
+
+A seguir, podemos verificar que "casa" e "carro" realmente são aceitos pelo autômato, e "calo" não é. Caso esteja acompanhando o código no Haskell Playground, apague a outra definição de função `main` para evitar repetição de definições. Perceba que o segundo parâmetro de `accepts` é uma lista de caracteres `List Char`. Em Haskell, o tipo `String` é definido justamente como `List Char`, e portanto podemos usar a notação usual de *strings*.
+
+```haskell
+main = do
+  print (example3 `accepts` "casa") -- imprime True
+  print (example3 `accepts` "carro") -- imprime True
+  print (example3 `accepts` "calo") -- imprime False
+```
+
+## Operações regulares
+
+Conforme trilhamos o caminho até chegar em expressões regulares, vamos aos poucos movendo os holofotes para as linguagens regulares.
 
 <!-- Até agora, vimos como definir autômatos finitos determinísticos e como representar linguagens regulares a partir deles. Agora, vamos ver como podemos *compor* diferentes autômatos, isto é, vamos ver operações entre autômatos. Já que  -->
+
+
+## Autômato finito não-determinístico
+
+Os autômatos determinísticos que vimos até então, apesar de úteis para modelar alguns sistemas simples, possuem algumas restrição importante: cada estado deve definir todas as suas transições possíveis, e cada transição deve ser única. Desta forma, a execução do autômato não pode "explorar" caminhos diferentes.
+
+
+
+<!-- old: exemplo de carro e casa aqui. 
+A necessidade de representar cada transição ao estado de falha é certamente inconveniente. -->
+
+---
 
 
 
