@@ -184,7 +184,7 @@ Acima, criamos um valor de `DFA` parametrizado pelos tipos `DoorState` e `DoorSy
 
 A função `transition` é definida usando a técnica de *pattern matching* em cima de seus parâmetros: quando recebe um valor `Open` e um `DoOpen`, retorna `Open`; quando recebe `Open` e `DoClose`, retorna `Closed`; e assim por diante. `start` é nada mais que o estado no qual o sistema começa e `endings` é um conjunto criado a partir da lista `[Open, Closed]`.
 
-## Linguagens regulares
+### Linguagens regulares
 
 Até este momento, estávamos pensando em autômatos como um modelo abstrato para sistemas concretos; a partir de agora, vamos focar um pouco mais nas abstrações, com os holofotes no conceito de *linguagem* brevemente mencionado.
 
@@ -294,11 +294,96 @@ main = do
   print (example2 `accepts` [A, A, B, A, B, B]) -- imprime False
 ```
 
-### Operações regulares
+### Autômato finito não-determinístico
 
-Estamos quase chegando em expressões regulares! Só nos resta entender um último conceito: como *compor* diferentes linguagens.
+Os autômatos determinísticos que vimos até então, apesar de úteis para modelar alguns sistemas simples, possuem uma restrição importante: cada estado deve definir todas as suas transições possíveis, e cada transição deve ser única. Desta forma, a execução do autômato não pode "explorar" caminhos diferentes.
+
+Vamos ver um exemplo mais próximo do nosso objetivo final: expressões regulares. Imagine que queremos formar um sistema capaz de decidir se uma palavra (ou uma *string*) é igual a "casa" ou "carro". Como vimos anteriormente, uma linguagem regular é o conjunto de entradas aceita por um autômato. Desta forma, vamos construir um autômato determinístico finito cuja linguagem é $\{\text{``casa''}, \text{``carro''}\}$. Seu alfabeto é composto por todas as letras da língua portuguesa. Portanto, todo estado deverá conter 26 transições - uma para cada letra.
+
+<div style="overflow-x: auto; overflow-y: hidden;">
+<svg width="700" height="350" style="display: block; margin: auto" version="1.1" xmlns="http://www.w3.org/2000/svg">
+	<ellipse stroke-width="1" fill="none" cx="106.5" cy="77.5" rx="30" ry="30"/>
+	<text x="97.5" y="83.5" font-family="Times New Roman" font-size="20">q&#8320;</text>
+	<ellipse stroke-width="1" fill="none" cx="214.5" cy="77.5" rx="30" ry="30"/>
+	<text x="205.5" y="83.5" font-family="Times New Roman" font-size="20">q&#8321;</text>
+	<ellipse stroke-width="1" fill="none" cx="321.5" cy="77.5" rx="30" ry="30"/>
+	<text x="312.5" y="83.5" font-family="Times New Roman" font-size="20">q&#8322;</text>
+	<ellipse stroke-width="1" fill="none" cx="399.5" cy="46.5" rx="30" ry="30"/>
+	<text x="390.5" y="52.5" font-family="Times New Roman" font-size="20">q&#8323;</text>
+	<ellipse stroke-width="1" fill="none" cx="106.5" cy="227.5" rx="30" ry="30"/>
+	<text x="93.5" y="233.5" font-family="Times New Roman" font-size="20">fail</text>
+	<ellipse stroke-width="1" fill="none" cx="399.5" cy="124.5" rx="30" ry="30"/>
+	<text x="390.5" y="130.5" font-family="Times New Roman" font-size="20">q&#8324;</text>
+	<ellipse stroke-width="1" fill="none" cx="502.5" cy="46.5" rx="30" ry="30"/>
+	<text x="493.5" y="52.5" font-family="Times New Roman" font-size="20">q&#8325;</text>
+	<ellipse stroke-width="1" fill="none" cx="502.5" cy="46.5" rx="24" ry="24"/>
+	<ellipse stroke-width="1" fill="none" cx="502.5" cy="124.5" rx="30" ry="30"/>
+	<text x="493.5" y="130.5" font-family="Times New Roman" font-size="20">q&#8326;</text>
+	<ellipse stroke-width="1" fill="none" cx="604.5" cy="124.5" rx="30" ry="30"/>
+	<text x="595.5" y="130.5" font-family="Times New Roman" font-size="20">q&#8327;</text>
+	<ellipse stroke-width="1" fill="none" cx="604.5" cy="124.5" rx="24" ry="24"/>
+	<polygon stroke-width="1" points="40.5,77.5 76.5,77.5"/>
+	<polygon fill="black" stroke-width="1" points="76.5,77.5 68.5,72.5 68.5,82.5"/>
+	<polygon stroke-width="1" points="136.5,77.5 184.5,77.5"/>
+	<polygon fill="black" stroke-width="1" points="184.5,77.5 176.5,72.5 176.5,82.5"/>
+	<text x="156.5" y="98.5" font-family="Times New Roman" font-size="20">c</text>
+	<polygon stroke-width="1" points="244.5,77.5 291.5,77.5"/>
+	<polygon fill="black" stroke-width="1" points="291.5,77.5 283.5,72.5 283.5,82.5"/>
+	<text x="263.5" y="98.5" font-family="Times New Roman" font-size="20">a</text>
+	<polygon stroke-width="1" points="349.379,66.42 371.621,57.58"/>
+	<polygon fill="black" stroke-width="1" points="371.621,57.58 362.34,55.888 366.033,65.181"/>
+	<text x="348.5" y="52.5" font-family="Times New Roman" font-size="20">s</text>
+	<polygon stroke-width="1" points="106.5,107.5 106.5,197.5"/>
+	<polygon fill="black" stroke-width="1" points="106.5,197.5 111.5,189.5 101.5,189.5"/>
+	<text x="27.5" y="158.5" font-family="Times New Roman" font-size="20">a, b, d, ...</text>
+	<polygon stroke-width="1" points="196.971,101.846 124.029,203.154"/>
+	<polygon fill="black" stroke-width="1" points="124.029,203.154 132.761,199.583 124.646,193.74"/>
+	<text x="166.5" y="172.5" font-family="Times New Roman" font-size="20">b, c, d, ...</text>
+	<path stroke-width="1" fill="none" d="M 311.516,105.762 A 204.592,204.592 0 0 1 136.471,227.887"/>
+	<polygon fill="black" stroke-width="1" points="136.471,227.887 144.758,232.394 144.154,222.413"/>
+	<path stroke-width="1" fill="none" d="M 390.106,74.972 A 250.305,250.305 0 0 1 136.166,231.843"/>
+	<polygon fill="black" stroke-width="1" points="136.166,231.843 143.71,237.508 144.563,227.544"/>
+	<polygon stroke-width="1" points="347.196,92.983 373.804,109.017"/>
+	<polygon fill="black" stroke-width="1" points="373.804,109.017 369.533,100.605 364.372,109.17"/>
+	<text x="365.5" y="91.5" font-family="Times New Roman" font-size="20">r</text>
+	<polygon stroke-width="1" points="429.5,46.5 472.5,46.5"/>
+	<polygon fill="black" stroke-width="1" points="472.5,46.5 464.5,41.5 464.5,51.5"/>
+	<text x="446.5" y="37.5" font-family="Times New Roman" font-size="20">a</text>
+	<polygon stroke-width="1" points="429.5,124.5 472.5,124.5"/>
+	<polygon fill="black" stroke-width="1" points="472.5,124.5 464.5,119.5 464.5,129.5"/>
+	<text x="447.5" y="115.5" font-family="Times New Roman" font-size="20">r</text>
+	<path stroke-width="1" fill="none" d="M 381.982,148.832 A 250.504,250.504 0 0 1 135.39,235.517"/>
+	<polygon fill="black" stroke-width="1" points="135.39,235.517 142.167,242.081 144.259,232.302"/>
+	<path stroke-width="1" fill="none" d="M 491.435,74.371 A 299.359,299.359 0 0 1 134.816,237.372"/>
+	<polygon fill="black" stroke-width="1" points="134.816,237.372 141.085,244.421 143.9,234.826"/>
+	<path stroke-width="1" fill="none" d="M 485.785,149.396 A 291.95,291.95 0 0 1 133.227,241.097"/>
+	<polygon fill="black" stroke-width="1" points="133.227,241.097 138.499,248.921 142.569,239.787"/>
+	<polygon stroke-width="1" points="532.5,124.5 574.5,124.5"/>
+	<polygon fill="black" stroke-width="1" points="574.5,124.5 566.5,119.5 566.5,129.5"/>
+	<text x="548.5" y="115.5" font-family="Times New Roman" font-size="20">o</text>
+	<path stroke-width="1" fill="none" d="M 585.883,148.015 A 378.412,378.412 0 0 1 132.917,241.701"/>
+	<polygon fill="black" stroke-width="1" points="132.917,241.701 137.917,249.701 142.299,240.712"/>
+	<path stroke-width="1" fill="none" d="M 119.725,254.297 A 22.5,22.5 0 1 1 93.275,254.297"/>
+	<text x="99.5" y="316.5" font-family="Times New Roman" font-size="20">...</text>
+	<polygon fill="black" stroke-width="1" points="93.275,254.297 84.527,257.83 92.618,263.708"/>
+</svg>
+</div>
+
+No autômato acima, as transições com mais de um símbolo do alfabeto representam múltiplas transições - uma para cada símbolo. As transições com reticiências retrata ou todos os caracteres possíveis, ou todos os caracteres não incluídos em outras transições. Para que possamos lidar com palavras que não são nem "casa" nem "carro", precisamos criar um estado de falha `fail`, do qual não é possível escapar.
+
+A necessidade de representar cada transição ao estado de falha é certamente inconveniente.
 
 ---
+
+<!-- ## Operações regulares
+
+Conforme trilhamos o caminho até chegar em expressões regulares, vamos aos poucos nos distanciando dos autômatos finitos -->
+
+<!-- Até agora, vimos como definir autômatos finitos determinísticos e como representar linguagens regulares a partir deles. Agora, vamos ver como podemos *compor* diferentes autômatos, isto é, vamos ver operações entre autômatos. Já que  -->
+
+
+
+
 
 *Você chegou ao fim do rascunho! Volte em breve...*
 
