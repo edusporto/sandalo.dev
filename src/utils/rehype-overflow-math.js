@@ -18,7 +18,7 @@ export default function rehypeKatexOverflowInParagraphs() {
         // the original paragraph inside
         const overflowDiv = h(
           "div",
-          { style: "overflow-x:auto;overflow-y:hidden;" },
+          { style: "overflow-x:auto;overflow-y:hidden;text-align:center" },
           [ h("p", { style: "margin:0" }, [child]) ]
         );
 
