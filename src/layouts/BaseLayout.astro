@@ -10,6 +10,30 @@ const { pageTitle } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle ?? "sandalo.dev"}</title>
+    <script is:inline>
+      const getTheme = () => {
+        const localStorageTheme = localStorage?.getItem("theme") ?? "";
+        if (["dark", "light"].includes(localStorageTheme)) {
+          return localStorageTheme;
+        }
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          return "dark";
+        }
+        return "light";
+      };
+
+      const setTheme = () => {
+        const theme = getTheme();
+        if (theme === "light") {
+          document.documentElement.classList.remove("dark");
+        } else {
+          document.documentElement.classList.add("dark");
+        }
+        window.localStorage.setItem("theme", theme);
+      };
+
+      setTheme();
+    </script>
   </head>
 
   <body>
