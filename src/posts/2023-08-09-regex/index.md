@@ -124,22 +124,91 @@ A **função de transição** recebe um estado e um símbolo do alfabeto e devol
 
 O **estado inicial** é nada mais que um dos estados do conjunto de estados, como indicado pela relação de pertencimento $q_0 \in Q$. De forma semelhante, o **conjunto de estados de terminação** é um *subconjunto* de $Q$, ou seja, é um conjunto de estados tal que todos os seus elementos também estão em $Q$.
 
-Tendo uma especificação de autômatos finitos bem definida, podemos traduzí-la em um programa.
+Tendo uma especificação de autômatos finitos bem definida, podemos traduzí-la em um programa. Antes disso, vamos ver o básico da linguagem de programação usada pelo resto do post.
 
-### Código
+## Básicos de Haskell
 
-Todo o código deste post estará escrito na linguagem Haskell. Não se preocupe se nunca tiver tido contato com ela: vamos explicar sua sintaxe e seu funcionamento de forma breve. Você pode testar o código deste post sem baixar o compilador da linguagem pelo [Haskell Playground](https://play.haskell.org/).
+Todo o código deste post estará escrito na linguagem Haskell. Não se preocupe se nunca tiver tido contato com ela: vamos explicar sua sintaxe e seu funcionamento de forma breve. Você pode testar o código deste post sem baixar o compilador da linguagem pelo [Haskell Playground](https://play.haskell.org/). No final do post, colocamos todo o código relevante junto em um bloco. A seção a seguir é uma breve introdução à linguagem; se você já tiver experiência, siga para a próxima seção.
+
+Em linguagens de programação do paradigma funcional como Haskell, a principal unidade de construção é a função. Programas serão, então, a composição de várias funções. Veja o seguinte exemplo de uma função que escolhe o primeiro de dois números inteiros:
+
+```haskell
+firstInt :: Int -> Int -> Int
+firstInt a b = a
+```
+
+A primeira linha é a **assinatura de tipo** da função. O tipo de uma função sempre será uma sequência de tipos alternados por setas `->`, sendo o último tipo a saída da função, e os outros são os parâmetros. Os parâmetros de funções não precisam estar entre parênteses, somente estarão quando necessário para evitar ambiguidade.
+
+Os parâmetros e resultado de uma função também podem ser de tipos genéricos. Quando um tipo em uma assinatura começar com letra minúscula, ele será uma **variável de tipo**, cuja instanciação no geral pode ser inferida pelo compilador:
+
+```haskell
+first :: a -> b -> a
+first a b = a
+
+numberOne :: Int
+numberOne = first 1 "Hi!"
+```
+
+Funções também podem ser passadas por parâmetro para outras funções:
+
+```haskell
+doFunction :: (a -> b) -> a -> b
+doFunction f a = f a
+```
+
+Podemos também criar **tipos de dados**, que armazenam dados. Há duas principais maneiras de se criar tipos: usando **produto** e **soma**. O produto se assemelha às *structs* de linguagens imperativas, permitindo que um tipo guarde dois ou mais outros tipos:
+
+```haskell
+-- Produto sem nomes
+data Person = MkPerson Int String
+
+-- Produto com nomes
+data Person = MkPerson
+  { id :: Int,
+    name :: String,
+  }
+```
+
+Já a soma de tipos define um valor que vai conter, exclusivamente, *ou* um tipo, *ou* outro. Cada *variante* deve possuir um nome, que será seu *construtor*. O tipo de produto `Person` só tem uma variante, cujo construtor é `MkPerson`. Veja um tipo para valores opcionais usando soma:
+
+```haskell
+data Option a = Some a | None
+```
+
+Os valores guardados em tipos de soma e de produto podem ser extraídos usando *pattern matching* em seus construtores:
+
+```haskell
+getPersonName :: Person -> String
+getPersonName (MkPerson id name) = name
+
+getSome :: Option a -> a
+getSome (Some v) = v
+getSome None = error "`Option` vazio"
+```
+
+Haskell é muito diferente de linguagens imperativas tradicionais. Poderíamos falar muito mais sobre a linguagem, mas para entender este post, os conceitos acima devem ser suficientes. Se quiser aprofundar, recomendo a leitura de [Read World Haskell](https://book.realworldhaskell.org/), de Bryan O'Sullivan, Don Stewart, e John Goerzen.
+
+## Autômato finito determinístico em Haskell
+
+A seguir, vamos finalmente representar autômatos em Haskell. Os conjuntos de estado e do alfabeto serão representados como tipos genéricos. Já o conjunto de terminação será representado desta forma:
+
+```haskell
+type Set a = a -> Bool
+
+contains :: Set a -> a -> Bool
+contains set element = set element
+```
+
+Este tipo é uma abreviação para uma função genérica em `a` que retorna verdadeiro se o elemento de `a` estiver no conjunto, e falso caso contrário.  Desta forma, nossos conjuntos serão representados pela *relação de pertencimento*.
 
 Podemos representar nosso autômato finito da seguinte forma. O tipo criado abaixo tem como nome `DFA`, que vem do inglês *deterministic finite automaton*.
 <!-- Vale a pena mencionar que até agora estávamos estudando uma versão específica de autômato chamada *determinísica*, mas também existe o autômato finito *não determinístico*. -->
 
 ```haskell
-import qualified Data.Set as S
-
 data DFA state symbol = MkDFA
   { transition :: state -> symbol -> state,
     start :: state,
-    endings :: S.Set state
+    end :: Set state
   }
 ```
 
@@ -149,25 +218,24 @@ Acima, criamos um tipo chamado `DFA` que é genérico em outros dois tipos: `sta
 
 Valores do tipo `DFA` podem ser criados usando a função construtora `MkDFA` (diz-se "*make DFA*"). Como atributos, um `DFA` deve ter:
 
-- Uma função de transição ($\delta$) chamada `transition`, que recebe um estado e um símbolo e retorna outro estado. Note que o tipo de funções em Haskell é escrito somente usando setas – o tipo depois da última seta será o retorno da função e todos os outros serão seus parâmetros,
+- Uma função de transição ($\delta$) chamada `transition`, que recebe um estado e um símbolo e retorna outro estado.
 - Um estado de início ($q_0$) chamado `start`,
-- Um conjunto de estados de terminação ($F$) chamado `ending`. Todas as funções associadas à manipulação de conjuntos foram importadas no comando `import qualified Data.Set as S`, e são acessadas a partir do nome `S`.
-
+- Um conjunto de estados de terminação ($F$) chamado `end`.
 
 Lembre do exemplo da porta eletrônica. Vamos representá-lo em Haskell!
 
 ```haskell
-data DoorState  = Open   | Closed deriving (Eq, Ord, Show)
+data DoorState  = Open   | Closed deriving (Eq, Show)
 data DoorSymbol = DoOpen | DoClose
 ```
 
-Neste bloco, criamos um tipo `DoorState`, que representa os estados nos quais uma porta pode estar e cujos valores podem ser ou `Open` ou `Closed`. Também criamos um tipo `DoorSymbol`, que configura o alfabeto do exemplo e é habitado por `DoOpen` e `DoClose`. O trecho `deriving (Eq, Ord)` permite que valores de `DoorState` possam ser comparados por igualdade, por ordem (algo necessário para que possamos criar conjuntos de `DoorState`), e possam ser transformados em texto.
+Neste bloco, criamos um tipo `DoorState`, que representa os estados nos quais uma porta pode estar e cujos valores podem ser ou `Open` ou `Closed`. Também criamos um tipo `DoorSymbol`, que configura o alfabeto do exemplo e é habitado por `DoOpen` e `DoClose`. O trecho `deriving (Eq, Ord)` permite que valores de `DoorState` possam ser comparados por igualdade e possam ser transformados em texto.
 
 Definimos o autômato do exemplo da seguinte forma:
 
 ```haskell
 example1 :: DFA DoorState DoorSymbol
-example1 = MkDFA transition start endings
+example1 = MkDFA transition start end
   where
     transition :: DoorState -> DoorSymbol -> DoorState
     transition Open   DoOpen  = Open
@@ -176,19 +244,19 @@ example1 = MkDFA transition start endings
     transition Closed DoClose = Closed
     start :: DoorState
     start = Open
-    endings :: S.Set DoorState
-    endings = S.fromList [Open, Closed]
+    end :: Set DoorState
+    end state = state `elem` [Open, Closed]
 ```
 
 Acima, criamos um valor de `DFA` parametrizado pelos tipos `DoorState` e `DoorSymbol`, usando os membros `transition`, `start`, e `endings` definidos após a cláusula `where`.
 
-A função `transition` é definida usando a técnica de *pattern matching* em cima de seus parâmetros: quando recebe um valor `Open` e um `DoOpen`, retorna `Open`; quando recebe `Open` e `DoClose`, retorna `Closed`; e assim por diante. `start` é nada mais que o estado no qual o sistema começa e `endings` é um conjunto criado a partir da lista `[Open, Closed]`.
+A função `transition` é definida usando a técnica de *pattern matching* em cima de seus parâmetros: quando recebe um valor `Open` e um `DoOpen`, retorna `Open`; quando recebe `Open` e `DoClose`, retorna `Closed`; e assim por diante. `start` é nada mais que o estado no qual o sistema começa e `end` é um conjunto que retorna verdadeiro para cada elemento na lista `[Open, Closed]`. Funções entre *backticks* (\`) são consideradas *infixas*, isto é, são escritas entre seus parâmetros, de forma que `elem state [Open, Closed]` seja igual a ``state `elem` [Open, Closed]``.
 
 ## Linguagens regulares
 
 Até este momento, estávamos pensando em autômatos como um modelo abstrato para sistemas concretos; a partir de agora, vamos focar um pouco mais nas abstrações, com os holofotes no conceito de *linguagem* brevemente mencionado.
 
-A linguagem de um modelo computacional baseado em *aceitação* e *rejeição*, como discutido, é o conjunto de todas as entradas que, no final de sua computação, acaba em um estado de aceitação. Por definição, as **linguagens regulares** são *todas* as linguagens que podem ser descritas por autômatos finitos determinístico. Se o autômato $M$ aceita exatamente todas as fitas (ou *strings*) da linguagem $A$, dizemos que $M$ reconhece $A$.
+A linguagem de um modelo computacional baseado em *aceitação* e *rejeição*, como discutido, é o conjunto de todas as entradas que, no final de sua computação, acabam em um estado de aceitação. Por definição, as **linguagens regulares** são todas as linguagens que podem ser descritas por um autômato finito determinístico. Se o autômato $M$ aceita exatamente todas as fitas (ou *strings*) da linguagem $A$, dizemos que $M$ reconhece $A$.
 
 Imagine que estamos lidando com uma fita cujo alfabeto contêm somente as letras 'a' e 'b'. O conjunto de todas as fitas possíveis com esta característica seria:
 
@@ -227,11 +295,11 @@ $$\{\text{`` ''}, \text{``b''}, \text{``aa''}, \text{``aab''}, \text{``baa''}, \
 Em código, escrevemos este autômato como:
 
 ```haskell
-data Q = Q1 | Q2 deriving (Eq, Ord, Show)
+data Q = Q1 | Q2 deriving (Eq, Show)
 data S = A | B
 
 example2 :: DFA Q S
-example2 = MkDFA transition start endings
+example2 = MkDFA transition start end
   where
     transition :: Q -> S -> Q
     transition Q1 A = Q2
@@ -239,13 +307,13 @@ example2 = MkDFA transition start endings
     transition q B = q
     start :: Q
     start = Q1
-    endings :: S.Set Q
-    endings = S.singleton Q1
+    end :: Set Q
+    end state = state == Q1
 ```
 
-Note que um *singleton* é um conjunto de apenas um elemento. Podemos usar o programa que descreve este autômato para verificar, de forma automática, se uma fita *string* pertence à sua linguagem; mas a questão é, como fazemos isso?
+Podemos usar o programa que descreve este autômato para verificar, de forma automática, se uma string pertence à sua linguagem; mas a questão é, como fazemos isso?
 
-Precisamos escrever uma função que percorre os estados do modelo, alternando-os a partir das regras da função de transição. Em pseudo-código de uma linguagem imperativa tradicional, faríamos algo similar a isto:
+Precisamos escrever uma função que percorre os estados do modelo, transitando entre eles a partir das regras da função de transição. Em pseudo-código de uma linguagem imperativa tradicional, faríamos algo similar a isto:
 
 ```text
 run(transition, start, tape):
@@ -258,10 +326,10 @@ run(transition, start, tape):
 Este padrão de código é muito comum, e na programação funcional o chamamos de **fold** (dobra), já que seu comportamento é de "dobrar" sua entrada aos poucos até terminar com um único valor final. Em Haskell, a assinatura do `fold` dobrando elementos da esquerda para a direita é a seguinte:
 
 ```haskell
-foldl :: forall a b. (b -> a -> b) -> b -> [a] -> b
+foldl :: (b -> a -> b) -> b -> [a] -> b
 ```
 
-`foldl` recebe uma função que acumulará o estado atual do tipo genérico `b` com o valor atual do tipo genérico `a`, recebe também um estado inicial do tipo `b`, e uma lista de elementos do tipo `a`. No final, `foldl` retorna o resultado desta acumulação para cada elemento da lista.
+`foldl` recebe uma função que acumulará o estado atual de tipo genérico `b` com o valor atual na fita de tipo genérico `a`, recebe também um estado inicial do tipo `b`, e uma lista de elementos do tipo `a`. No final, `foldl` retorna o resultado desta acumulação para cada elemento da lista.
 
 A partir desta definição, a função que executa um autômato finito `dfa` com uma fita `tape` pode ser escrita assim:
 
@@ -270,19 +338,14 @@ runDfa :: DFA state symbol -> [symbol] -> state
 runDfa dfa tape = foldl (transition dfa) (start dfa) tape
 ```
 
-Os trechos `(transition dfa)` e `(start dfa)` extraem a função de transição e o estado inicial de um autômato, respectivamente. Lembre que o tipo da função de transição é `state -> symbol -> state`, e dessa forma, encaixa no tipo `b -> a -> b`. Após o fim da execução, precisamos saber se o estado final é de aceitação para descobrir se uma dada fita é parte da linguagem do autômato.
+Os trechos `(transition dfa)` e `(start dfa)` extraem a função de transição e o estado inicial de um autômato, respectivamente. Lembre que o tipo da função de transição é `state -> symbol -> state`, portanto, encaixa no tipo `b -> a -> b`. Após o fim da execução, precisamos saber se o estado final é de aceitação para descobrir se uma dada fita é parte da linguagem do autômato:
 
 ```haskell
-accepts :: Ord state => DFA state symbol -> [symbol] -> Bool
-accepts dfa tape = runDfa dfa tape `S.member` endings dfa
+accepts :: DFA state symbol -> [symbol] -> Bool
+accepts dfa tape = end dfa `contains` runDfa dfa tape
 ```
 
-Alguns detalhes de notação:
-
-- `Ord state =>` indica que os estados devem ser ordenáveis, algo necessário para que possamos realizar uma busca em conjunto,
-- funções entre *backticks* (\`) são consideradas *infixas*, isto é, são escritas entre seus parâmetros, de forma que `S.member element set` seja igual a ``element `S.member` set``.
-
-Então, esta função verifica se o estado final é membro do conjunto de estados de terminação.
+A função acima verifica se o estado final é membro do conjunto de estados de terminação.
 
 Para testar as funções que acabamos de definir com alguns exemplos, definimos a função *main* de entrada do programa que imprime alguns resultados:
 
@@ -365,13 +428,13 @@ Vamos ver um exemplo mais próximo do objetivo final de expressões regulares. I
 </svg>
 </div>
 
-No autômato acima, as transições com mais de um símbolo do alfabeto representam múltiplas transições, adicionando uma para cada símbolo. As transições com reticiências retratam ou todos os caracteres possíveis, ou todos os caracteres não incluídos em outras transições. Para que possamos lidar com palavras que não são nem "casa" nem "car
+No autômato acima, as transições com mais de um símbolo do alfabeto representam múltiplas transições, uma para cada símbolo. As transições com reticiências retratam ou todos os caracteres possíveis, ou todos os caracteres não incluídos em outras transições. Para que possamos lidar com palavras que não são nem "casa" nem "carro", precisamos adicionar um estado de "falha", do qual não é possível escapar.
 
 Abaixo, temos a representação em Haskell deste mesmo autômato.
 
 ```haskell
 example3 :: DFA String Char
-example3 = MkDFA transition start endings
+example3 = MkDFA transition start end
   where
     transition :: String -> Char -> String
     transition "q0"  'c' = "q1"
@@ -391,15 +454,15 @@ example3 = MkDFA transition start endings
     transition   _    _  = "fail"
     start :: String
     start = "q0"
-    endings :: S.Set String
-    endings = S.fromList ["q5", "q7"]
+    end :: Set String
+    end state = state `elem` ["q5", "q7"]
 ```
 
 Novamente, usamos *pattern matching* para representar as transições. Os padrões com *underscore* `_` significam "todos os outros casos". Por exemplo, a linha `transition "q0" _ = "fail"` significa "transições de `"q0"` com qualquer símbolo além de `'c'` (definido anteriormente) resultará em `"fail"`".
 
-Note que o conjunto de estados de `example3` é o conjunto de todas as *strings*, e o alfabeto é o conjunto de todos os caracteres. Então, tecnicamente qualquer string é válida como estado, e qualquer caracter é válido como transição. Para evitar problemas, colocamos a linha `transition _ _ = "fail"`, levando qualquer estado ou transição indesejada ao estado de falha.
+Note que o conjunto de estados de `example3` é o conjunto de *todas* as strings, e o alfabeto é o conjunto de *todos* os caracteres. Então, tecnicamente qualquer string é válida como estado, e qualquer caracter é válido como transição. Para evitar problemas, colocamos a linha `transition _ _ = "fail"`, levando qualquer estado ou transição indesejada ao estado de falha.
 
-A seguir, podemos verificar que "casa" e "carro" realmente são aceitos pelo autômato, e "calo" não é. Caso esteja acompanhando o código no Haskell Playground, apague a outra definição de função `main` para evitar repetição de definições. Perceba que o segundo parâmetro de `accepts` é uma lista de caracteres `List Char`. Em Haskell, o tipo `String` é definido como `List Char`, e portanto podemos usar a notação usual de *strings*.
+A seguir, podemos verificar que "casa" e "carro" realmente são aceitos pelo autômato, e "calo" não é. Caso esteja acompanhando o código no Haskell Playground, apague a outra definição de função `main` para evitar repetição de definições. Perceba que o segundo parâmetro de `accepts` é uma lista de caracteres `List Char`. Em Haskell, o tipo `String` é definido como `List Char`, e portanto podemos usar a notação usual de strings.
 
 ```haskell
 main = do
@@ -410,7 +473,7 @@ main = do
 
 ## Operações regulares
 
-Conforme trilhamos o caminho até as expressões regulares, vamos aos poucos movendo os holofotes para as linguagens regulares. Vamos ver agora as **operações** que podemos realizar para compor linguagens.
+Conforme trilhamos o caminho até as expressões regulares, vamos voltar a discutir linguagens regulares. Vamos ver agora as **operações** que podemos realizar para compor linguagens.
 
 Dadas as linguagens regulares $A$ e $B$, as seguintes operações resultam em outras linguagens:
 
@@ -631,15 +694,24 @@ A união $M = M_1 \cup M_2$ será igual a:
 </svg>
 </div>
 
-Todas as transições não desenhadas levam a $(f_1, f_2)$. Apesar deste autômato parecer complexo, ele só possui 6 estados que realmente fazem diferença no resultado final, que são os estados alcançáveis por $(a_0, b_0)$. São eles: $(a_0, b_0)$, $(a_1, f_2)$, $(f_1, b_1)$, $(a_2, f_2)$, $(f_1, b_2)$, $(f_1, f_2)$. Todos os outros estados não afetam a execução do autômato, e poderiam ser removidos.
+Todas as transições não desenhadas levam a $(f_1, f_2)$. Apesar deste autômato parecer complexo, ele só possui 6 estados que realmente fazem diferença ao resultado final, que são os estados alcançáveis por $(a_0, b_0)$. São eles: $(a_0, b_0)$, $(a_1, f_2)$, $(f_1, b_1)$, $(a_2, f_2)$, $(f_1, b_2)$, $(f_1, f_2)$. Todos os outros estados não afetam a execução do autômato, e poderiam ser removidos.
 
 Um problema com nossa abordagem de união é o tamanho do autômato gerado. Como o conjunto de estados gerado é o produto cartesiano de $Q_1$ e $Q_2$, o tamanho do conjunto final será $|Q_1| \times |Q_2|$. No nosso exemplo simples, a união de dois autômatos com 4 estados gerou um autômato com 16 estados, o que ficaria ainda pior com autômatos maiores. Uma otimização simples seria, como mencionado, remover os estados inalcançáveis. Nosso objetivo neste post é somente implementar expressões regulares com base na teoria matemática -- a área de otimização de autômatos é extensa e merece o seu próprio post.
 
 #### Código
 
-Surpreendentemente, o código em Haskell para esta operação é muito simples!
+Surpreendentemente, o código em Haskell para esta operação é muito simples! Veja abaixo:
 
-TODO: Mudar DFA para usar (a -> Bool) como conjunto de terminação
+```haskell
+unionDfa :: DFA q1 a -> DFA q2 a -> DFA (q1, q2) a
+unionDfa (MkDFA δ1 q1 end1) (MkDFA δ2 q2 end2) = MkDFA δ start end
+  where
+    δ (r1, r2) a = (δ1 r1 a, δ2 r2 a)
+    start        = (q1, q2)
+    end (r1, r2) = end1 `contains` r1 || end2 `contains` r2
+```
+
+Em Haskell, dados os tipos `q1` e `q2`, `(q1, q2)` é o tipo de todos os pares de `q1` e `q2`, servindo efetivamente como produto cartesiano. Note que a linguagem da assinatura de tipos é separada da linguagem de valores: `q1` e `q2` são tipos na linha 1, e estados iniciais (valores) na linha 2. Dados dois valores `q1` e `q2`, `(q1, q2)` é o par composto pelos dois (e somente eles).
 
 
 <br/>
