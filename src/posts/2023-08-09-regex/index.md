@@ -157,7 +157,7 @@ Valores do tipo `DFA` podem ser criados usando a função construtora `MkDFA` (d
 Lembre do exemplo da porta eletrônica. Vamos representá-lo em Haskell!
 
 ```haskell
-data DoorState = Open | Closed deriving (Eq, Ord, Show)
+data DoorState  = Open   | Closed deriving (Eq, Ord, Show)
 data DoorSymbol = DoOpen | DoClose
 ```
 
@@ -170,9 +170,9 @@ example1 :: DFA DoorState DoorSymbol
 example1 = MkDFA transition start endings
   where
     transition :: DoorState -> DoorSymbol -> DoorState
-    transition Open DoOpen = Open
-    transition Open DoClose = Closed
-    transition Closed DoOpen = Open
+    transition Open   DoOpen  = Open
+    transition Open   DoClose = Closed
+    transition Closed DoOpen  = Open
     transition Closed DoClose = Closed
     start :: DoorState
     start = Open
@@ -188,11 +188,11 @@ A função `transition` é definida usando a técnica de *pattern matching* em c
 
 Até este momento, estávamos pensando em autômatos como um modelo abstrato para sistemas concretos; a partir de agora, vamos focar um pouco mais nas abstrações, com os holofotes no conceito de *linguagem* brevemente mencionado.
 
-A linguagem de um modelo computacional baseado em *aceitação* e *rejeição*, como discutido, é o conjunto de todas as entradas que, no final de sua computação, acaba em um estado de aceitação. Por definição, as **linguagens regulares** são *todas* as linguagens que podem ser descritas por autômatos finitos.
+A linguagem de um modelo computacional baseado em *aceitação* e *rejeição*, como discutido, é o conjunto de todas as entradas que, no final de sua computação, acaba em um estado de aceitação. Por definição, as **linguagens regulares** são *todas* as linguagens que podem ser descritas por autômatos finitos determinístico. Se o autômato $M$ aceita exatamente todas as fitas (ou *strings*) da linguagem $A$, dizemos que $M$ reconhece $A$.
 
 Imagine que estamos lidando com uma fita cujo alfabeto contêm somente as letras 'a' e 'b'. O conjunto de todas as fitas possíveis com esta característica seria:
 
-$$\{\text{`` ''}, \text{``a''}, \text{``b''}, \text{``aa''}, \text{``ab''}, \text{``ba''}, \text{``bb''},  \text{``aaa''}, \text{``aab''}...\}$$
+$$\{\text{`` ''}, \text{``a''}, \text{``b''}, \text{``aa''}, \text{``ab''}, \text{``ba''}, \text{``bb''},  \text{``aaa''}, \text{``aab''}, \text{...}\}$$
 
 Desta forma, qualquer autômato que tenha ao menos um estado e que todos sejam de aceitação terá este conjunto como linguagem. Mas, e se quisermos adicionar alguma restrição? Abaixo, vemos o diagrama de estados de um autômato cuja linguagem contêm *apenas* as fitas que tenham um número par de aparições da letra 'a' e qualquer número da letra 'b'.
 
@@ -221,7 +221,7 @@ Desta forma, qualquer autômato que tenha ao menos um estado e que todos sejam d
 </div>
 
 <!-- <div style="overflow-x: auto; overflow-y: hidden;"> -->
-$$\{\text{`` ''}, \text{``b''}, \text{``aa''}, \text{``aab''}, \text{``baa''}, \text{``aabb''}, \text{``baab''}, \text{``bbaa''},  \text{``aaaa''}, ...\}$$
+$$\{\text{`` ''}, \text{``b''}, \text{``aa''}, \text{``aab''}, \text{``baa''}, \text{``aabb''}, \text{``baab''}, \text{``bbaa''},  \text{``aaaa''}, \text{...}\}$$
 <!-- </div> -->
 
 Em código, escrevemos este autômato como:
@@ -243,9 +243,9 @@ example2 = MkDFA transition start endings
     endings = S.singleton Q1
 ```
 
-Note que um *singleton* é um conjunto de apenas um elemento. Podemos usar o programa que descreve este autômato para verificar, de forma automática, se uma fita (ou *string*) pertence à sua linguagem; mas a questão é, como fazemos isso?
+Note que um *singleton* é um conjunto de apenas um elemento. Podemos usar o programa que descreve este autômato para verificar, de forma automática, se uma fita *string* pertence à sua linguagem; mas a questão é, como fazemos isso?
 
-Necessitamos escrever uma função que percorre os estados do modelo, alternando-os a partir das regras da função de transição. Em pseudo-código de uma linguagem imperativa tradicional, faríamos algo similar a isto:
+Precisamos escrever uma função que percorre os estados do modelo, alternando-os a partir das regras da função de transição. Em pseudo-código de uma linguagem imperativa tradicional, faríamos algo similar a isto:
 
 ```text
 run(transition, start, tape):
@@ -395,29 +395,261 @@ example3 = MkDFA transition start endings
     endings = S.fromList ["q5", "q7"]
 ```
 
-Novamente, usamos *pattern matching* para representar as transições. Os padrões com *underscore* `_` significam "todos os outros casos". Por exemplo, a linha `transition "q0" _ = "fail"` significa "transições de `"q0"` com qualquer símbolo além de `"c"` (definido anteriormente) resultará em `"fail"`".
+Novamente, usamos *pattern matching* para representar as transições. Os padrões com *underscore* `_` significam "todos os outros casos". Por exemplo, a linha `transition "q0" _ = "fail"` significa "transições de `"q0"` com qualquer símbolo além de `'c'` (definido anteriormente) resultará em `"fail"`".
 
-Note que o conjunto de estados de `example3` é o conjunto de todas as *strings*, e o alfabeto é o conjunto de todos os caracteres. Desta forma, tecnicamente qualquer string é válida como estado, e qualquer caracter é válido como transição. Para evitar problemas, colocamos a linha `transition _ _ = "fail"`, levando qualquer estado ou transição indesejada ao estado de falha.
+Note que o conjunto de estados de `example3` é o conjunto de todas as *strings*, e o alfabeto é o conjunto de todos os caracteres. Então, tecnicamente qualquer string é válida como estado, e qualquer caracter é válido como transição. Para evitar problemas, colocamos a linha `transition _ _ = "fail"`, levando qualquer estado ou transição indesejada ao estado de falha.
 
-A seguir, podemos verificar que "casa" e "carro" realmente são aceitos pelo autômato, e "calo" não é. Caso esteja acompanhando o código no Haskell Playground, apague a outra definição de função `main` para evitar repetição de definições. Perceba que o segundo parâmetro de `accepts` é uma lista de caracteres `List Char`. Em Haskell, o tipo `String` é definido justamente como `List Char`, e portanto podemos usar a notação usual de *strings*.
+A seguir, podemos verificar que "casa" e "carro" realmente são aceitos pelo autômato, e "calo" não é. Caso esteja acompanhando o código no Haskell Playground, apague a outra definição de função `main` para evitar repetição de definições. Perceba que o segundo parâmetro de `accepts` é uma lista de caracteres `List Char`. Em Haskell, o tipo `String` é definido como `List Char`, e portanto podemos usar a notação usual de *strings*.
 
 ```haskell
 main = do
-  print (example3 `accepts` "casa") -- imprime True
+  print (example3 `accepts` "casa")  -- imprime True
   print (example3 `accepts` "carro") -- imprime True
-  print (example3 `accepts` "calo") -- imprime False
+  print (example3 `accepts` "calo")  -- imprime False
 ```
 
 ## Operações regulares
 
-Conforme trilhamos o caminho até chegar em expressões regulares, vamos aos poucos movendo os holofotes para as linguagens regulares.
+Conforme trilhamos o caminho até as expressões regulares, vamos aos poucos movendo os holofotes para as linguagens regulares. Vamos ver agora as **operações** que podemos realizar para compor linguagens.
+
+Dadas as linguagens regulares $A$ e $B$, as seguintes operações resultam em outras linguagens:
+
+- **União**: $A \cup B = \{ x \mid x \in A \text{ ou } x \in B \}$
+- **Concatenação**: $A \circ B = \{ x y \mid x \in A \text{ e } y \in B \}$
+- **Estrela**: $A^* = \{ x_1 x_2 \ldots x_k \mid k \geq 0 \text{ e cada } x_i \in A \}$
+
+A união é simples: a união de $A$ e $B$ é a linguagem que tem exatamente os mesmos elementos que estão em $A$ ou que estão em $B$. Por exemplo:
+
+$$\{ \text{``casa''}, \text{``carro''} \} \cup \{ \text{``joia''}, \text{``boia''} \} = \{ \text{``casa''}, \text{``carro''}, \text{``joia''}, \text{``boia''} \}$$
+
+A concatenação de $A$ e $B$ junta cada elemento de $A$ à esquerda a cada elemento de $B$ à direita. Por exemplo:
+
+$$\{ \text{``casa''}, \text{``carro''} \} \circ \{ \text{``joia''}, \text{``boia''} \} = \{ \text{``casajoia''}, \text{``casaboia''}, \text{``carrojoia''}, \text{``carroboia''} \}$$
+
+A estrela de $A$, também chamada de *Kleene star*, é uma operação unária. Ela anexa qualquer número de *strings* em $A$, incluindo 0, e seu resultado é a linguagem de todas os anexos possíveis. Veja o exemplo a seguir. Note que sempre que $A$ não for o conjunto vazio, $A^*$ será um conjunto infinito.
+
+$$\{ \text{``a''}, \text{``b''}, \text{``c''} \}^* = \{ \text{`` ''}, \text{``a''}, \text{``b''}, \text{``c''}, \text{``aa''}, \text{``ab''}, \text{``ac''}, \text{``ba''}, \text{``bb''}, \text{``bc''}, \text{``ca''}, \text{``cb''}, \text{``cc''}, \text{``aaa''}, \text{``aab''}, \text{...}\} $$ 
+
+## Regularidade
+
+Uma pergunta natural decorrente das operações acima é ***será que o resultado de cada uma destas operações também é uma linguagem regular?***
+
+Lembre que a definição de linguagem regular é "uma linguagem reconhecida por um autômato finito determinístico". Portanto, uma maneira de demonstrar que o resultado dessas operações é regular é simplesmente construir autômatos finitos determinísticos que as realizam. Um bônus adicional desta abordagem é que, além de provarmos que as operações são regulares, nós também teremos uma maneira de *computar* (ou *construir*) estas operações. Demonstrações matemáticas deste estilo são chamadas de *provas por construção*. As provas que faremos neste post não podem ser chamadas de provas *formais*, pois não são realizadas com todo o rigor matemático. Para provas com mais rigor, dê uma olhada no livro *Introduction to the Theory of Computation* de Michael Sipser.
+
+### União
+
+Suponha que o autômato $M_1 = (Q_1, \Sigma, \delta_1, q_1, F_1)$ reconhece a linguagem $A_1$, e o autômato $M_2 = (Q_2, \Sigma, \delta_2, q_2, F_2)$ reconhece a linguagem $A_2$. A ideia da nossa construção será juntar todos os estados de $Q_1$ e $Q_2$ par-a-par, formando o *produto cartesiano*:
+
+$$Q_1 \times Q_2 = \{ (r_1, r_2) \mid r_1 \in Q_1 \text{ e } r_2 \in Q_2 \}$$
+
+Desta forma, cada estado do autômato resultante será um par com um estado de $Q_1$ e um estado de $Q_2$. Cada transição de $\delta_1$ de $r_a$ para $r_b$ será atualizada para levar de um estado com $r_a$ à esquerda a outro estado com $r_b$ na esquerda, e equivalentemente para as transições de $\delta_2$, mas para a direita. O estado inicial do novo autômato será o estado que contêm o par $(q_1, q_2)$, e os estados finais serão todos os estados que contêm ou um estado de terminação de $M_1$, ou um estado de terminação de $M_2$.
+
+Assim, o autômato $M = (Q, \Sigma, \delta, q_0, F)$ que reconhece $A_1 \cup A_2$ terá os seguintes elementos:
+
+- $Q = Q_1 \times Q_2$
+- $\Sigma$ se mantêm, já que o alfabeto de $M_1$ e $M_2$ são iguais.
+  - Caso $M_1$ tivesse alfabeto $\Sigma_1$ e $M_2$ tivesse $\Sigma_2$, o alfabeto de $M$ seria $\Sigma = \Sigma_1 \cup \Sigma_2$.
+- $\delta((r_1, r_2), a) = (\delta_1(r_1, a), \delta_2(r_2, a))$
+  - Isto é: para um símbolo $a$, o estado resultante deve ser o par das transições de $M_1$ e $M_2$.
+- $q_0 = (q_1, q_2)$
+- $F = \{ (r_1, r_2) \mid r_1 \in F_1 \text{ ou } r_2 \in F_2 \} = (F_1 \times Q_2) \cup (Q_1 \times F_2)$
+
+Uma prova formal de que $A_1 \cup A_2$ é regular deveria argumentar usando alguma ferramenta rigorosa como indução que o autômato $M$ realmente reconhece $A_1 \cup A_2$. Neste post, ficaremos apenas na intuição.
+
+Vejamos um exemplo. Abaixo, temos o autômato $M_1$ que reconhece a linguagem $\{ \text{``do''} \}$, e depois o autômato $M_2$ que reconhece $\{ \text{``re''} \}$.
+
+<div style="overflow-x: auto; overflow-y: hidden;">
+<svg width="400" height="250" style="display: block; margin: auto" version="1.1" xmlns="http://www.w3.org/2000/svg">
+	<text x="0.5" y="22.5" font-family="Times New Roman" font-size="20">M&#8321;</text>
+	<ellipse stroke-width="1" fill="none" cx="88.5" cy="69.5" rx="30" ry="30"/>
+	<text x="79.5" y="75.5" font-family="Times New Roman" font-size="20">a&#8320;</text>
+	<ellipse stroke-width="1" fill="none" cx="88.5" cy="187.5" rx="30" ry="30"/>
+	<text x="81.5" y="193.5" font-family="Times New Roman" font-size="20">f&#8321;</text>
+	<ellipse stroke-width="1" fill="none" cx="199.5" cy="69.5" rx="30" ry="30"/>
+	<text x="190.5" y="75.5" font-family="Times New Roman" font-size="20">a&#8321;</text>
+	<ellipse stroke-width="1" fill="none" cx="307.5" cy="69.5" rx="30" ry="30"/>
+	<text x="298.5" y="75.5" font-family="Times New Roman" font-size="20">a&#8322;</text>
+	<ellipse stroke-width="1" fill="none" cx="307.5" cy="69.5" rx="24" ry="24"/>
+	<polygon stroke-width="1" points="31.5,69.5 58.5,69.5"/>
+	<polygon fill="black" stroke-width="1" points="58.5,69.5 50.5,64.5 50.5,74.5"/>
+	<polygon stroke-width="1" points="118.5,69.5 169.5,69.5"/>
+	<polygon fill="black" stroke-width="1" points="169.5,69.5 161.5,64.5 161.5,74.5"/>
+	<text x="139.5" y="60.5" font-family="Times New Roman" font-size="20">d</text>
+	<polygon stroke-width="1" points="229.5,69.5 277.5,69.5"/>
+	<polygon fill="black" stroke-width="1" points="277.5,69.5 269.5,64.5 269.5,74.5"/>
+	<text x="248.5" y="60.5" font-family="Times New Roman" font-size="20">o</text>
+	<polygon stroke-width="1" points="88.5,99.5 88.5,157.5"/>
+	<polygon fill="black" stroke-width="1" points="88.5,157.5 93.5,149.5 83.5,149.5"/>
+	<text x="68.5" y="134.5" font-family="Times New Roman" font-size="20">...</text>
+	<polygon stroke-width="1" points="178.945,91.351 109.055,165.649"/>
+	<polygon fill="black" stroke-width="1" points="109.055,165.649 118.178,163.247 110.895,156.396"/>
+	<text x="123.5" y="119.5" font-family="Times New Roman" font-size="20">...</text>
+	<polygon stroke-width="1" points="281.09,83.73 114.91,173.27"/>
+	<polygon fill="black" stroke-width="1" points="114.91,173.27 124.325,173.877 119.581,165.073"/>
+	<text x="202.5" y="149.5" font-family="Times New Roman" font-size="20">...</text>
+</svg>
+</div>
+
+<div style="overflow-x: auto; overflow-y: hidden;">
+<svg width="400" height="280" style="display: block; margin: auto" version="1.1" xmlns="http://www.w3.org/2000/svg">
+	<text x="0.5" y="22.5" font-family="Times New Roman" font-size="20">M&#8322;</text>
+	<ellipse stroke-width="1" fill="none" cx="88.5" cy="69.5" rx="30" ry="30"/>
+	<text x="79.5" y="75.5" font-family="Times New Roman" font-size="20">b&#8320;</text>
+	<ellipse stroke-width="1" fill="none" cx="88.5" cy="187.5" rx="30" ry="30"/>
+	<text x="81.5" y="193.5" font-family="Times New Roman" font-size="20">f&#8322;</text>
+	<ellipse stroke-width="1" fill="none" cx="199.5" cy="69.5" rx="30" ry="30"/>
+	<text x="190.5" y="75.5" font-family="Times New Roman" font-size="20">b&#8321;</text>
+	<ellipse stroke-width="1" fill="none" cx="307.5" cy="69.5" rx="30" ry="30"/>
+	<text x="298.5" y="75.5" font-family="Times New Roman" font-size="20">b&#8322;</text>
+	<ellipse stroke-width="1" fill="none" cx="307.5" cy="69.5" rx="24" ry="24"/>
+	<polygon stroke-width="1" points="31.5,69.5 58.5,69.5"/>
+	<polygon fill="black" stroke-width="1" points="58.5,69.5 50.5,64.5 50.5,74.5"/>
+	<polygon stroke-width="1" points="118.5,69.5 169.5,69.5"/>
+	<polygon fill="black" stroke-width="1" points="169.5,69.5 161.5,64.5 161.5,74.5"/>
+	<text x="140.5" y="60.5" font-family="Times New Roman" font-size="20">r</text>
+	<polygon stroke-width="1" points="229.5,69.5 277.5,69.5"/>
+	<polygon fill="black" stroke-width="1" points="277.5,69.5 269.5,64.5 269.5,74.5"/>
+	<text x="249.5" y="60.5" font-family="Times New Roman" font-size="20">e</text>
+	<polygon stroke-width="1" points="88.5,99.5 88.5,157.5"/>
+	<polygon fill="black" stroke-width="1" points="88.5,157.5 93.5,149.5 83.5,149.5"/>
+	<text x="68.5" y="134.5" font-family="Times New Roman" font-size="20">...</text>
+	<polygon stroke-width="1" points="178.945,91.351 109.055,165.649"/>
+	<polygon fill="black" stroke-width="1" points="109.055,165.649 118.178,163.247 110.895,156.396"/>
+	<text x="123.5" y="119.5" font-family="Times New Roman" font-size="20">...</text>
+	<polygon stroke-width="1" points="281.09,83.73 114.91,173.27"/>
+	<polygon fill="black" stroke-width="1" points="114.91,173.27 124.325,173.877 119.581,165.073"/>
+	<text x="202.5" y="149.5" font-family="Times New Roman" font-size="20">...</text>
+</svg>
+</div>
+
+A união $M = M_1 \cup M_2$ será igual a:
+
+<div style="overflow-x: auto; overflow-y: hidden;">
+<svg width="650" height="500" style="display: block; margin: auto" version="1.1" xmlns="http://www.w3.org/2000/svg">
+	<text x="0.5" y="22.5" font-family="Times New Roman" font-size="20">M</text>
+	<ellipse stroke-width="1" fill="none" cx="136.5" cy="220.5" rx="30" ry="30"/>
+	<text x="113.5" y="226.5" font-family="Times New Roman" font-size="20">a&#8320;, b&#8320;</text>
+	<ellipse stroke-width="1" fill="none" cx="136.5" cy="65.5" rx="30" ry="30"/>
+	<text x="113.5" y="71.5" font-family="Times New Roman" font-size="20">a&#8320;, b&#8321;</text>
+	<ellipse stroke-width="1" fill="none" cx="200.5" cy="65.5" rx="30" ry="30"/>
+	<text x="177.5" y="71.5" font-family="Times New Roman" font-size="20">a&#8320;, b&#8322;</text>
+	<ellipse stroke-width="1" fill="none" cx="200.5" cy="65.5" rx="24" ry="24"/>
+	<ellipse stroke-width="1" fill="none" cx="266.5" cy="65.5" rx="30" ry="30"/>
+	<text x="245.5" y="71.5" font-family="Times New Roman" font-size="20">a&#8320;, f&#8322;</text>
+	<ellipse stroke-width="1" fill="none" cx="136.5" cy="365.5" rx="30" ry="30"/>
+	<text x="113.5" y="371.5" font-family="Times New Roman" font-size="20">a&#8321;, b&#8320;</text>
+	<ellipse stroke-width="1" fill="none" cx="368.5" cy="65.5" rx="30" ry="30"/>
+	<text x="345.5" y="71.5" font-family="Times New Roman" font-size="20">a&#8321;, b&#8321;</text>
+	<ellipse stroke-width="1" fill="none" cx="434.5" cy="65.5" rx="30" ry="30"/>
+	<text x="411.5" y="71.5" font-family="Times New Roman" font-size="20">a&#8321;, b&#8322;</text>
+	<ellipse stroke-width="1" fill="none" cx="434.5" cy="65.5" rx="24" ry="24"/>
+	<ellipse stroke-width="1" fill="none" cx="266.5" cy="163.5" rx="30" ry="30"/>
+	<text x="245.5" y="169.5" font-family="Times New Roman" font-size="20">a&#8321;, f&#8322;</text>
+	<ellipse stroke-width="1" fill="none" cx="200.5" cy="365.5" rx="30" ry="30"/>
+	<text x="177.5" y="371.5" font-family="Times New Roman" font-size="20">a&#8322;, b&#8320;</text>
+	<ellipse stroke-width="1" fill="none" cx="200.5" cy="365.5" rx="24" ry="24"/>
+	<ellipse stroke-width="1" fill="none" cx="368.5" cy="365.5" rx="30" ry="30"/>
+	<text x="345.5" y="371.5" font-family="Times New Roman" font-size="20">a&#8322;, b&#8321;</text>
+	<ellipse stroke-width="1" fill="none" cx="368.5" cy="365.5" rx="24" ry="24"/>
+	<ellipse stroke-width="1" fill="none" cx="477.5" cy="365.5" rx="30" ry="30"/>
+	<text x="454.5" y="371.5" font-family="Times New Roman" font-size="20">a&#8322;, b&#8322;</text>
+	<ellipse stroke-width="1" fill="none" cx="477.5" cy="365.5" rx="24" ry="24"/>
+	<ellipse stroke-width="1" fill="none" cx="368.5" cy="163.5" rx="30" ry="30"/>
+	<text x="347.5" y="169.5" font-family="Times New Roman" font-size="20">a&#8322;, f&#8322;</text>
+	<ellipse stroke-width="1" fill="none" cx="368.5" cy="163.5" rx="24" ry="24"/>
+	<ellipse stroke-width="1" fill="none" cx="266.5" cy="268.5" rx="30" ry="30"/>
+	<text x="244.5" y="274.5" font-family="Times New Roman" font-size="20">f&#8321;, b&#8321;</text>
+	<ellipse stroke-width="1" fill="none" cx="368.5" cy="268.5" rx="30" ry="30"/>
+	<text x="346.5" y="274.5" font-family="Times New Roman" font-size="20">f&#8321;, b&#8322;</text>
+	<ellipse stroke-width="1" fill="none" cx="368.5" cy="268.5" rx="24" ry="24"/>
+	<ellipse stroke-width="1" fill="none" cx="477.5" cy="220.5" rx="30" ry="30"/>
+	<text x="457.5" y="226.5" font-family="Times New Roman" font-size="20">f&#8321;, f&#8322;</text>
+	<ellipse stroke-width="1" fill="none" cx="266.5" cy="365.5" rx="30" ry="30"/>
+	<text x="244.5" y="371.5" font-family="Times New Roman" font-size="20">f&#8321;, b&#8320;</text>
+	<polygon stroke-width="1" points="79.5,220.5 106.5,220.5"/>
+	<polygon fill="black" stroke-width="1" points="106.5,220.5 98.5,215.5 98.5,225.5"/>
+	<polygon stroke-width="1" points="163.975,208.453 239.025,175.547"/>
+	<polygon fill="black" stroke-width="1" points="239.025,175.547 229.691,174.18 233.706,183.338"/>
+	<text x="186.5" y="182.5" font-family="Times New Roman" font-size="20">d</text>
+	<polygon stroke-width="1" points="164.643,230.891 238.357,258.109"/>
+	<polygon fill="black" stroke-width="1" points="238.357,258.109 232.584,250.647 229.12,260.028"/>
+	<text x="190.5" y="265.5" font-family="Times New Roman" font-size="20">r</text>
+	<polygon stroke-width="1" points="296.5,268.5 338.5,268.5"/>
+	<polygon fill="black" stroke-width="1" points="338.5,268.5 330.5,263.5 330.5,273.5"/>
+	<text x="313.5" y="289.5" font-family="Times New Roman" font-size="20">e</text>
+	<polygon stroke-width="1" points="296.5,163.5 338.5,163.5"/>
+	<polygon fill="black" stroke-width="1" points="338.5,163.5 330.5,158.5 330.5,168.5"/>
+	<text x="312.5" y="154.5" font-family="Times New Roman" font-size="20">o</text>
+	<polygon stroke-width="1" points="395.084,177.402 450.916,206.598"/>
+	<polygon fill="black" stroke-width="1" points="450.916,206.598 446.143,198.46 441.509,207.322"/>
+	<text x="427.5" y="182.5" font-family="Times New Roman" font-size="20">...</text>
+	<polygon stroke-width="1" points="395.956,256.409 450.044,232.591"/>
+	<polygon fill="black" stroke-width="1" points="450.044,232.591 440.708,231.239 444.738,240.391"/>
+	<text x="427.5" y="265.5" font-family="Times New Roman" font-size="20">...</text>
+	<polygon stroke-width="1" points="266.5,95.5 266.5,133.5"/>
+	<polygon fill="black" stroke-width="1" points="266.5,133.5 271.5,125.5 261.5,125.5"/>
+	<text x="271.5" y="120.5" font-family="Times New Roman" font-size="20">d</text>
+	<polygon stroke-width="1" points="160.456,83.559 242.544,145.441"/>
+	<polygon fill="black" stroke-width="1" points="242.544,145.441 239.166,136.633 233.146,144.618"/>
+	<text x="186.5" y="135.5" font-family="Times New Roman" font-size="20">d</text>
+	<polygon stroke-width="1" points="217.258,90.383 249.742,138.617"/>
+	<polygon fill="black" stroke-width="1" points="249.742,138.617 249.42,129.188 241.126,134.774"/>
+	<text x="239.5" y="107.5" font-family="Times New Roman" font-size="20">d</text>
+	<polygon stroke-width="1" points="217.376,340.697 249.624,293.303"/>
+	<polygon fill="black" stroke-width="1" points="249.624,293.303 240.99,297.104 249.257,302.73"/>
+	<text x="239.5" y="336.5" font-family="Times New Roman" font-size="20">r</text>
+	<polygon stroke-width="1" points="160.544,347.559 242.456,286.441"/>
+	<polygon fill="black" stroke-width="1" points="242.456,286.441 233.054,287.218 239.034,295.232"/>
+	<text x="189.5" y="308.5" font-family="Times New Roman" font-size="20">r</text>
+	<polygon stroke-width="1" points="368.5,95.5 368.5,133.5"/>
+	<polygon fill="black" stroke-width="1" points="368.5,133.5 373.5,125.5 363.5,125.5"/>
+	<text x="373.5" y="120.5" font-family="Times New Roman" font-size="20">o</text>
+	<polygon stroke-width="1" points="417.742,90.383 385.258,138.617"/>
+	<polygon fill="black" stroke-width="1" points="385.258,138.617 393.874,134.774 385.58,129.188"/>
+	<text x="407.5" y="133.5" font-family="Times New Roman" font-size="20">o</text>
+	<polygon stroke-width="1" points="368.5,335.5 368.5,298.5"/>
+	<polygon fill="black" stroke-width="1" points="368.5,298.5 363.5,306.5 373.5,306.5"/>
+	<text x="373.5" y="323.5" font-family="Times New Roman" font-size="20">e</text>
+	<path stroke-width="1" fill="none" d="M 504.297,207.275 A 22.5,22.5 0 1 1 504.297,233.725"/>
+	<text x="550.5" y="226.5" font-family="Times New Roman" font-size="20">...</text>
+	<polygon fill="black" stroke-width="1" points="504.297,233.725 507.83,242.473 513.708,234.382"/>
+	<polygon stroke-width="1" points="266.5,335.5 266.5,298.5"/>
+	<polygon fill="black" stroke-width="1" points="266.5,298.5 261.5,306.5 271.5,306.5"/>
+	<text x="271.5" y="323.5" font-family="Times New Roman" font-size="20">r</text>
+	<polygon stroke-width="1" points="477.5,335.5 477.5,250.5"/>
+	<polygon fill="black" stroke-width="1" points="477.5,250.5 472.5,258.5 482.5,258.5"/>
+	<text x="482.5" y="299.5" font-family="Times New Roman" font-size="20">...</text>
+	<path stroke-width="1" fill="none" d="M 392.423,181.531 A 161.083,161.083 0 1 1 151.068,391.676"/>
+	<polygon fill="black" stroke-width="1" points="392.423,181.531 394.968,190.615 401.704,183.223"/>
+	<text x="394.5" y="442.5" font-family="Times New Roman" font-size="20">o</text>
+	<path stroke-width="1" fill="none" d="M 361.051,297.525 A 180.861,180.861 0 1 1 108.721,76.736"/>
+	<polygon fill="black" stroke-width="1" points="361.051,297.525 353.704,303.443 363.151,306.722"/>
+	<text x="57.5" y="395.5" font-family="Times New Roman" font-size="20">e</text>
+	<path stroke-width="1" fill="none" d="M 391.707,46.574 A 143.965,143.965 0 1 1 391.707,287.426"/>
+	<polygon fill="black" stroke-width="1" points="391.707,287.426 395.659,295.992 401.139,287.627"/>
+	<text x="619.5" y="173.5" font-family="Times New Roman" font-size="20">o</text>
+</svg>
+</div>
+
+Todas as transições não desenhadas levam a $(f_1, f_2)$. Apesar deste autômato parecer complexo, ele só possui 6 estados que realmente fazem diferença no resultado final, que são os estados alcançáveis por $(a_0, b_0)$. São eles: $(a_0, b_0)$, $(a_1, f_2)$, $(f_1, b_1)$, $(a_2, f_2)$, $(f_1, b_2)$, $(f_1, f_2)$. Todos os outros estados não afetam a execução do autômato, e poderiam ser removidos.
+
+Um problema com nossa abordagem de união é o tamanho do autômato gerado. Como o conjunto de estados gerado é o produto cartesiano de $Q_1$ e $Q_2$, o tamanho do conjunto final será $|Q_1| \times |Q_2|$. No nosso exemplo simples, a união de dois autômatos com 4 estados gerou um autômato com 16 estados, o que ficaria ainda pior com autômatos maiores. Uma otimização simples seria, como mencionado, remover os estados inalcançáveis. Nosso objetivo neste post é somente implementar expressões regulares com base na teoria matemática -- a área de otimização de autômatos é extensa e merece o seu próprio post.
+
+#### Código
+
+Surpreendentemente, o código em Haskell para esta operação é muito simples!
+
+TODO: Mudar DFA para usar (a -> Bool) como conjunto de terminação
+
+
+<br/>
 
 <!-- Até agora, vimos como definir autômatos finitos determinísticos e como representar linguagens regulares a partir deles. Agora, vamos ver como podemos *compor* diferentes autômatos, isto é, vamos ver operações entre autômatos. Já que  -->
 
 
-## Autômato finito não-determinístico
+<!-- ## Autômato finito não-determinístico
 
-Os autômatos determinísticos que vimos até então, apesar de úteis para modelar alguns sistemas simples, possuem algumas restrição importante: cada estado deve definir todas as suas transições possíveis, e cada transição deve ser única. Desta forma, a execução do autômato não pode "explorar" caminhos diferentes.
+Os autômatos determinísticos que vimos até então, apesar de úteis para modelar alguns sistemas simples, possuem algumas restrição importante: cada estado deve definir todas as suas transições possíveis, e cada transição deve ser única. Desta forma, a execução do autômato não pode "explorar" caminhos diferentes. -->
 
 
 
