@@ -79,8 +79,12 @@ body {
   font-size: 18px;
   fill: var(--c7);
   stroke: var(--c7);
-  transition: background-color 0.2s ease, color 0.2s ease;
   overflow-wrap: break-word;
+}
+
+/* We only want the transition when there is a button press */
+.do-transition {
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 code {
