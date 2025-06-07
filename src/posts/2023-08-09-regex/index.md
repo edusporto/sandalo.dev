@@ -505,7 +505,7 @@ Suponha que o autômato $M_1 = (Q_1, \Sigma, \delta_1, q_1, F_1)$ reconhece a li
 
 $$Q_1 \times Q_2 = \{ (r_1, r_2) \mid r_1 \in Q_1 \text{ e } r_2 \in Q_2 \}$$
 
-Desta forma, cada estado do autômato resultante será um par com um estado de $Q_1$ e um estado de $Q_2$. Cada transição de $\delta_1$ de $r_a$ para $r_b$ será atualizada para levar de um estado com $r_a$ à esquerda a outro estado com $r_b$ na esquerda, e equivalentemente para as transições de $\delta_2$, mas para a direita. O estado inicial do novo autômato será o estado que contêm o par $(q_1, q_2)$, e os estados finais serão todos os estados que contêm ou um estado de terminação de $M_1$, ou um estado de terminação de $M_2$.
+Desta forma, cada estado do autômato resultante será um par com um estado de $Q_1$ e um estado de $Q_2$. Cada transição de $\delta_1$ de $r_a$ para $r_b$ será atualizada para levar de um estado com $r_a$ à esquerda a outro estado com $r_b$ na esquerda, e equivalentemente para as transições de $\delta_2$, mas para a direita. Desta forma, simulamos a execução dos dois autômatos simultaneamente. O estado inicial do novo autômato será o estado que contêm o par $(q_1, q_2)$, e os estados finais serão todos os estados que contêm ou um estado de terminação de $M_1$, ou um estado de terminação de $M_2$.
 
 Assim, o autômato $M = (Q, \Sigma, \delta, q_0, F)$ que reconhece $A_1 \cup A_2$ terá os seguintes elementos:
 
@@ -589,7 +589,7 @@ A união $M = M_1 \cup M_2$ será igual a:
 
 <div style="overflow-x: auto; overflow-y: hidden;">
 <svg width="650" height="500" style="display: block; margin: auto" version="1.1" xmlns="http://www.w3.org/2000/svg">
-	<text x="0.5" y="22.5" font-family="Times New Roman" font-size="20">M</text>
+	<text x="30.5" y="42.5" font-family="Times New Roman" font-size="20">M</text>
 	<ellipse stroke-width="1" fill="none" cx="136.5" cy="220.5" rx="30" ry="30"/>
 	<text x="113.5" y="226.5" font-family="Times New Roman" font-size="20">a&#8320;, b&#8320;</text>
 	<ellipse stroke-width="1" fill="none" cx="136.5" cy="65.5" rx="30" ry="30"/>
@@ -700,7 +700,7 @@ Um problema com nossa abordagem de união é o tamanho do autômato gerado. Como
 
 #### Código
 
-Surpreendentemente, o código em Haskell para esta operação é muito simples! Veja abaixo:
+O código em Haskell para esta operação é muito parecido com as definições anteriores. Veja abaixo:
 
 ```haskell
 unionDfa :: DFA q1 a -> DFA q2 a -> DFA (q1, q2) a
@@ -711,8 +711,15 @@ unionDfa (MkDFA δ1 q1 end1) (MkDFA δ2 q2 end2) = MkDFA δ start end
     end (r1, r2) = end1 `contains` r1 || end2 `contains` r2
 ```
 
-Em Haskell, dados os tipos `q1` e `q2`, `(q1, q2)` é o tipo de todos os pares de `q1` e `q2`, servindo efetivamente como produto cartesiano. Note que a linguagem da assinatura de tipos é separada da linguagem de valores: `q1` e `q2` são tipos na linha 1, e estados iniciais (valores) na linha 2. Dados dois valores `q1` e `q2`, `(q1, q2)` é o par composto pelos dois (e somente eles).
+Em Haskell, dados os tipos `q1` e `q2`, `(q1, q2)` é o tipo de todos os pares de `q1` e `q2`, servindo efetivamente como produto cartesiano. Note que a linguagem da assinatura de tipos é separada da linguagem de valores: `q1` e `q2` são tipos na linha 1, e estados iniciais (valores) na linha 2. Dados dois valores `q1` e `q2`, `(q1, q2)` é o par composto pelos dois (e somente eles). Como exercício, tente deduzir o que precisaríamos mudar neste código para que ele realizasse a intersecção de dois autômatos.
 
+### Concatenação
+
+Para provar que a concatenação de duas linguagens regulares $A = A_1 \circ A_2$ é regular, precisamos construir um autômato que reconhece $A$. Se $M_1$ reconhece $A_1$ e $M_2$ reconhece $A_2$, o autômato $M$ que reconhece $A$ precisará de alguma forma simular a execução do autômato de $M_1$, e depois imediatamente simular a execução do autômato de $M_2$.
+
+Esta operação é menos direta que a união. Toda vez $M$ atingir um estado de terminação de $M_1$, ele deverá começar a processar $M_2$, mas também deve continuar processando $M_1$ caso o estado de terminação seja alcançado novamente. Isto nos leva a crer que precisamos de alguma maneira de processar múltiplos estados ao mesmo tempo, algo que autômatos finitos determinísticos não são capazes de fazer. Vamos adicionar mais uma ferramenta ao nosso arsenal: **não-determinismo**.
+
+## Autômato finito não-determinístico
 
 <br/>
 
