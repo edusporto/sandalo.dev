@@ -717,7 +717,7 @@ Em Haskell, dados os tipos `q1` e `q2`, `(q1, q2)` é o tipo de todos os pares d
 
 Para provar que a concatenação de duas linguagens regulares $A = A_1 \circ A_2$ é regular, precisamos construir um autômato que reconhece $A$. Se $M_1$ reconhece $A_1$ e $M_2$ reconhece $A_2$, o autômato $M$ que reconhece $A$ precisará de alguma forma simular a execução do autômato de $M_1$, e depois imediatamente simular a execução do autômato de $M_2$.
 
-Esta operação é menos direta que a união. Toda vez $M$ atingir um estado de terminação de $M_1$, ele deverá começar a processar $M_2$, mas também deve continuar processando $M_1$ caso o estado de terminação seja alcançado novamente. Isto nos leva a crer que precisamos de alguma maneira de processar múltiplos estados ao mesmo tempo, algo que autômatos finitos determinísticos não são capazes de fazer. Vamos adicionar mais uma ferramenta ao nosso arsenal: **não-determinismo**.
+Esta operação é menos direta que a união. Toda vez que $M$ atingir um estado de terminação de $M_1$, ele deverá começar a processar $M_2$, mas também deve continuar processando $M_1$ caso o estado de terminação seja alcançado novamente. Isto nos leva a crer que precisamos de alguma maneira de processar múltiplos estados ao mesmo tempo, algo que autômatos finitos determinísticos não são capazes de fazer. Vamos adicionar mais uma ferramenta ao nosso arsenal: **não-determinismo**.
 
 ## Autômato finito não-determinístico
 
