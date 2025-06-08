@@ -782,7 +782,7 @@ O tipo dos autômatos finitos não-determinísticos `NFA` pode ser definido da s
 ```haskell
 data SymbolNFA a = Symb a | Empty
 
-data NFA state symbol = NFA
+data NFA state symbol = MkNFA
   { transition :: state -> SymbolNFA symbol -> [state],
     start      :: state,
     end        :: Set state
@@ -804,13 +804,22 @@ next δ states symbol =
   states >>= \state ->
     δ state (Symb symbol) ++ next δ (δ state Empty) symbol
 
-runNfa :: Foldable t => NFA s a -> t a -> [s]
+runNfa :: Foldable t => NFA state symbol -> t symbol -> [state]
 runNfa nfa = foldl (next (transitionNfa nfa)) [startNfa nfa]
+
+acceptsNfa :: Foldable t => NFA state symbol -> t symbol -> Bool
+acceptsNfa nfa tape =
+  let lastStates = runNfa nfa tape
+   in any (\state -> endNfa nfa `contains` state) lastStates
 ```
 
-Nota de notação: `\x -> y` cria uma função anônima (sem nome) com parâmetro `x` e corpo `y`.
+Detalhes de notação:
+1. `\x -> y` cria uma função anônima (sem nome) com parâmetro `x` e corpo `y`,
+2. `Foldable t =>` significa que `t` é qualquer tipo que pode ser dobrado com `foldl` (ou `foldr`).
 
-A função `next` é a mais interessante até agora, e só é possível de ser escrita de forma tão sucinta graças a dois aspectos de Haskell presentes em pouquíssimas linguagens de programação: *mônadas* (especificamente, a mônada de listas) e *avaliação por demanda*. Como este post não é um tutorial de Haskell, vamos explicar somente o necessário para entender o código acima. Se quiser saber mais sobre mônadas, recomendo [este post escrito por professores da UFABC](https://haskell.pesquisa.ufabc.edu.br/haskell/11.monads/).
+`runNfa` irá dobrar a fita de entrada usando `next (transitionNfa nfa)`, gerando uma lista de estados no final. `acceptsNfa` irá verificar se qualquer um dos últimos estados da execução do `NFA` está contido no conjunto de terminação.
+
+A função `next` é a mais interessante até agora, e só é possível de ser escrita de forma tão sucinta graças a dois aspectos de Haskell presentes em pouquíssimas linguagens de programação: *mônadas* (especificamente, a mônada de listas) e *avaliação por demanda*. Como este post não é um tutorial de Haskell, vamos explicar somente o necessário para entender o código acima. Se quiser saber mais sobre mônadas, recomendo [esta página escrita por professores da UFABC](https://haskell.pesquisa.ufabc.edu.br/haskell/11.monads/).
 
 #### Mônadas
 
@@ -857,9 +866,41 @@ Esta função:
 
 Em linguagens de programação tradicionais, com avaliação *estrita*, a ordem de execução desta função seguiria exatamente os passos 1, 2, 3, e 4, e somente depois poderia retornar. Assim, um passo de execução do autômato só poderia ser realizado depois de calcular *todos* os possíveis próximos passos. Mas, Haskell possui avaliação por *demanda*, que calcula o valor de expressões somente quando necessário. Na prática, isto significa que a função que usar o resultado de `δ state (Symb symbol) ++ next δ (δ state Empty) symbol`, no primeiro momento, só irá processar o resultado parcial de `δ state (Symb symbol)`. Somente quando toda a lista gerada por esta expressão for processada, ocorrerá a execução de `next δ (δ state Empty) symbol`. Esta expressão também será avaliada por demanda, então novamente o resultado de `(δ state Empty)` será calculado aos poucos, até que toda a lista que gera seja percorrida. Desta forma, o fluxo de execução final estará mais próximo de seguir os passos na ordem 1, 4, 3, 2.
 
-A avaliação por demanda evita que transições cíclicas interrompam indefinidamente a execução de `next`. Por exemplo, suponha que dois estados possuam transições vazias entre si. Usando avaliação estrita, `next` iria necessariamente entrar em loop infinito. Com avaliação por demanda, este loop infinito só ocorrerá se o autômato não conseguir encontrar um estado de terminação antes do loop ser processado.[^4]
+A avaliação por demanda evita que transições cíclicas interrompam indefinidamente a execução de `next`. Por exemplo, suponha que dois estados possuam transições vazias entre si. Usando avaliação estrita, `next` iria necessariamente entrar em loop infinito. Com avaliação por demanda, este loop infinito só ocorrerá se o autômato não conseguir encontrar um estado de terminação antes do loop ser processado. Seria possível evitar completamente loops infinitos usando algo como a [mônada Omega](https://hackage-content.haskell.org/package/control-monad-omega-0.3.3/docs/Control-Monad-Omega.html), que utiliza outra estratégia para computações não-determinísticas. Para evitar complexidades adicionais, vamos parar por aqui.
 
-[^4]: Seria possível evitar completamente loops infinitos usando algo como a [mônada Omega](https://hackage-content.haskell.org/package/control-monad-omega-0.3.3/docs/Control-Monad-Omega.html), que utiliza outra estratégia para computações não-determinísticas.
+Finalmente, podemso representar o NFA de exemplo em código:
+
+```haskell
+data Binary = B0 | B1
+  deriving (Eq)
+
+-- nomes Q1 e Q2 estão em uso
+data R = R1 | R2 | R3 | R4 deriving (Eq, Show)
+
+example4 :: NFA R Binary
+example4 = MkNFA trans R1 (\state -> state == R4)
+  where
+    trans R1 (Symb B0) = [R1]
+    trans R1 (Symb B1) = [R1, R2]
+    trans R1 Empty     = []
+    trans R2 (Symb B0) = [R3]
+    trans R2 (Symb B1) = []
+    trans R2 Empty     = [R3]
+    trans R3 (Symb B0) = []
+    trans R3 (Symb B1) = [R4]
+    trans R3 Empty     = []
+    trans R4 (Symb B0) = [R4]
+    trans R4 (Symb B1) = [R4]
+    trans R4 Empty     = []
+```
+
+Testamos sua execução a seguir:
+
+```haskell
+main = do
+  print (runNfa example4 [B1, B0, B1])       -- imprime [R1,R2,R4]
+  print (example4 `acceptsNfa` [B1, B0, B1]) -- imprime True
+```
 
 ---
 
