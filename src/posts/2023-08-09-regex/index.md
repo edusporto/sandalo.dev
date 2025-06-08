@@ -472,7 +472,7 @@ main = do
   print (example3 `acceptsDfa` "calo")  -- imprime False
 ```
 
-## Operações regulares
+## Operações em linguagens
 
 Conforme trilhamos o caminho até as expressões regulares, vamos voltar a discutir linguagens regulares. Vamos ver agora as **operações** que podemos realizar para compor linguagens.
 
@@ -494,7 +494,7 @@ A estrela de $A$, também chamada de *Kleene star*, é uma operação unária. E
 
 $$\{ \text{``a''}, \text{``b''}, \text{``c''} \}^* = \{ \text{`` ''}, \text{``a''}, \text{``b''}, \text{``c''}, \text{``aa''}, \text{``ab''}, \text{``ac''}, \text{``ba''}, \text{``bb''}, \text{``bc''}, \text{``ca''}, \text{``cb''}, \text{``cc''}, \text{``aaa''}, \text{``aab''}, \text{...}\} $$ 
 
-## Regularidade
+## Operações regulares
 
 Uma pergunta natural decorrente das operações acima é ***será que o resultado de cada uma destas operações também é uma linguagem regular?***
 
@@ -791,7 +791,7 @@ data NFA state symbol = MkNFA
 
 Fizemos duas mudanças em relação aos DFAs:
 
-1. Cada símbolo em `symbol` da função de transição deverá estar em `SymbolNFA symbol`, para evitar que o usuário deste tipo tenha que fornecer seu próprio símbolo vazio.
+1. Cada símbolo em `symbol` da função de transição deverá estar em `SymbolNFA symbol`, para evitar que o usuário tenha que fornecer seu próprio símbolo vazio.
 2. A função de transição retorna uma lista[^2] de estados em `state`.
 
 [^2]: Poderíamos utilizar alguma implementação de conjuntos como a fornecida no módulo `Data.Set` da biblioteca [containers](https://hackage-content.haskell.org/package/containers-0.8/docs/Data-Set.html), mas evitaremos bibliotecas externas no código deste post. Não usaremos o tipo `Set` do conjunto de terminação, já que o uso de não-determinismo em funções características é complexo, como discutido [nesta pergunta do StackOverflow](https://stackoverflow.com/questions/73576728/non-determinism-on-a-set-defined-by-the-characteristic-function).
@@ -808,9 +808,10 @@ runNfa :: Foldable t => NFA state symbol -> t symbol -> [state]
 runNfa nfa = foldl (next (transitionNfa nfa)) [startNfa nfa]
 
 acceptsNfa :: Foldable t => NFA state symbol -> t symbol -> Bool
-acceptsNfa nfa tape =
-  let lastStates = runNfa nfa tape
-   in any (\state -> endNfa nfa `contains` state) lastStates
+acceptsNfa nfa string =
+  let lastStates = runNfa nfa string
+      isEndState = \state -> endNfa nfa `contains` state
+   in any isEndState lastStates
 ```
 
 Detalhes de notação:
@@ -823,7 +824,7 @@ A função `next` é a mais interessante até agora, e só é possível de ser e
 
 #### Mônadas
 
-Uma mônada (ou `Monad`) é uma abstração para um *contexto computacional*. Contextos computacionais "enrolam" dados, e a maneira como estes dados serão transformados depende da definição destes contextos. O contexto computacional das listas em Haskell é justamente não-determinismo -- qualquer dado que seja transformado dentro do contexto computacional da lista será tratado de forma não-determinística. Isto não é implementado no compilador da linguagem, mas sim a partir da *classe de tipos* `Monad`. Qualquer tipo `m` que implementar as seguintes duas funções pode ser considerado um `Monad`[^3]:
+Uma mônada (ou `Monad`) é uma abstração para um *contexto computacional*. Contextos computacionais "enrolam" dados, e a maneira como estes dados serão transformados depende da definição destes contextos. O contexto computacional das listas em Haskell é justamente não-determinismo -- qualquer dado que seja transformado dentro do contexto computacional da lista será tratado de forma não-determinística. Isto não é implementado no compilador da linguagem, mas na *classe de tipos* `Monad`. Qualquer tipo `m` que implementar as seguintes duas funções pode ser considerado um `Monad`[^3]:
 
 [^3]: É desejável que um `Monad` também siga as *leis das mônadas*, discutidas [nesta página da Haskell Wiki](https://wiki.haskell.org/index.php?title=Monad_laws).
 
@@ -832,7 +833,7 @@ return :: a -> m a
 (>>=)  :: m a -> (a -> m b) -> m b
 ```
 
-A função `return`, muitas vezes chamada de `pure`, insere um valor *puro* em um contexto computacional. No caso de listas, é a função que cria uma lista de 1 elemento:
+A função `return`, às vezes chamada de `pure`, insere um valor *puro* em um contexto computacional. No caso de listas, é a função que cria uma lista de 1 elemento:
 
 ```haskell
 return :: a -> List a
@@ -902,6 +903,12 @@ main = do
   print (example4 `acceptsNfa` [B1, B0, B1]) -- imprime True
 ```
 
+## Equivalência entre DFAs e NFAs
+
+Por definição, as linguagens regulares são as linguagens reconhecidas por algum autômato finito determinístico. Mas, e as linguagens reconhecidas por algum autômato finito não-determinístico?
+
+Como veremos agora, DFAs e NFAs são **equivalentes** em poder -- isto é, toda linguagem aceita por um DFA também é aceita por NFA, e vice-versa.
+
 ---
 
 *Você chegou ao fim do rascunho! Volte em breve...*
@@ -911,3 +918,138 @@ main = do
 <!-- ## Conclusão -->
 
 ![An automaton that prints "Na-Na-Na-... Batman!"](./images/nanana.png "Na-Na-Na-Na-Na-... Batman!")
+
+<!-- Código completo
+type Set a = a -> Bool
+
+contains :: Set a -> a -> Bool
+contains set element = set element
+
+data DFA state symbol = MkDFA
+  { transitionDfa :: state -> symbol -> state,
+    startDfa :: state,
+    endDfa :: Set state
+  }
+  
+runDfa :: DFA state symbol -> [symbol] -> state
+runDfa dfa tape = foldl (transitionDfa dfa) (startDfa dfa) tape
+
+acceptsDfa :: DFA state symbol -> [symbol] -> Bool
+acceptsDfa dfa tape = endDfa dfa `contains` runDfa dfa tape
+
+data DoorState  = Open   | Closed deriving (Eq, Ord, Show)
+data DoorSymbol = DoOpen | DoClose
+
+example1 :: DFA DoorState DoorSymbol
+example1 = MkDFA transition start end
+  where
+    transition :: DoorState -> DoorSymbol -> DoorState
+    transition Open   DoOpen  = Open
+    transition Open   DoClose = Closed
+    transition Closed DoOpen  = Open
+    transition Closed DoClose = Closed
+    start :: DoorState
+    start = Open
+    end :: Set DoorState
+    end state = state `elem` [Open, Closed]
+
+data Q = Q1 | Q2 deriving (Eq, Show)
+data S = A | B
+
+example2 :: DFA Q S
+example2 = MkDFA transition start end
+  where
+    transition :: Q -> S -> Q
+    transition Q1 A = Q2
+    transition Q2 A = Q1
+    transition q B = q
+    start :: Q
+    start = Q1
+    end :: Set Q
+    end state = state == Q1
+
+example3 :: DFA String Char
+example3 = MkDFA transition start end
+  where
+    transition :: String -> Char -> String
+    transition "q0"  'c' = "q1"
+    transition "q1"  'a' = "q2"
+    transition "q2"  's' = "q3"
+    transition "q2"  'r' = "q4"
+    transition "q3"  'a' = "q5"
+    transition "q4"  'r' = "q6"
+    transition "q6"  'o' = "q7"
+    transition "q0"   _  = "fail"
+    transition "q1"   _  = "fail"
+    transition "q2"   _  = "fail"
+    transition "q3"   _  = "fail"
+    transition "q4"   _  = "fail"
+    transition "q6"   _  = "fail"
+    transition "fail" _  = "fail"
+    transition   _    _  = "fail"
+    start :: String
+    start = "q0"
+    end :: Set String
+    end state = state `elem` ["q5", "q7"]
+
+unionDfa :: DFA s1 a -> DFA s2 a -> DFA (s1, s2) a
+unionDfa (MkDFA δ1 q1 end1) (MkDFA δ2 q2 end2) = MkDFA δ (q1, q2) end
+  where
+    δ (r1, r2) a = (δ1 r1 a, δ2 r2 a)
+    end (r1, r2) = end1 `contains` r1 || end2 `contains` r2
+
+data SymbolNFA a = Symb a | Empty
+
+data NFA state symbol = NFA
+  { transitionNfa :: state -> SymbolNFA symbol -> [state],
+    startNfa      :: state,
+    endNfa        :: Set state
+  }
+
+next :: (state -> SymbolNFA symbol -> [state]) -> [state] -> symbol -> [state]
+next δ states symbol =
+  states >>= \state ->
+    δ state (Symb symbol) ++ next δ (δ state Empty) symbol
+
+runNfa :: Foldable t => NFA state symbol -> t symbol -> [state]
+runNfa nfa = foldl (next (transitionNfa nfa)) [startNfa nfa]
+
+acceptsNfa :: Foldable t => NFA state symbol -> t symbol -> Bool
+acceptsNfa nfa string =
+  let lastStates = runNfa nfa string
+      isEndState = \state -> endNfa nfa `contains` state
+   in any isEndState lastStates
+
+data Binary = B0 | B1
+  deriving (Eq)
+
+-- nomes Q1 e Q2 estão em uso
+data R = R1 | R2 | R3 | R4 deriving (Eq, Show)
+
+example4 :: NFA R Binary
+example4 = NFA trans R1 (== R4)
+  where
+    trans R1 (Symb B0) = [R1]
+    trans R1 (Symb B1) = [R1, R2]
+    trans R1 Empty     = []
+    trans R2 (Symb B0) = [R3]
+    trans R2 (Symb B1) = []
+    trans R2 Empty     = [R3]
+    trans R3 (Symb B0) = []
+    trans R3 (Symb B1) = [R4]
+    trans R3 Empty     = []
+    trans R4 (Symb B0) = [R4]
+    trans R4 (Symb B1) = [R4]
+    trans R4 Empty     = []
+
+main = do
+  print (runDfa example2 [A, A, B, A, B, A]) -- imprime Q1
+  print (runDfa example2 [A, A, B, A, B, B]) -- imprime Q2
+  print (example2 `acceptsDfa` [A, A, B, A, B, A]) -- imprime True
+  print (example2 `acceptsDfa` [A, A, B, A, B, B]) -- imprime False
+  print (example3 `acceptsDfa` "casa") -- imprime True
+  print (example3 `acceptsDfa` "carro") -- imprime True
+  print (example3 `acceptsDfa` "calo") -- imprime False
+  print (runNfa example4 [B1, B0, B1]) -- imprime [R1,R2,R4]
+  print (example4 `acceptsNfa` [B1, B0, B1]) -- imprime True
+-->
