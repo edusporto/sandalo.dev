@@ -11,7 +11,7 @@ lang: Portuguese
 
 *Nota: Esta versão do artigo é um rascunho e está incompleta!*
 
-As expressões regulares, também chamadas de *regex*, compõem uma ferramenta extremamente útil no arsenal de todo programador. Usando uma curta sequência de símbolos, podemos definir padrões complexos para a realização de buscas e identificação de cadeias de caracteres em textos largos. Mas, você sabia que elas estão fortemente ligadas à noção de "o que é **computação**" e ao trabalho de pesquisa de grandes nomes como Alan Turing e Noam Chomsky?
+As expressões regulares, também chamadas de *RegEx*, compõem uma ferramenta extremamente útil no arsenal de todo programador. Usando uma curta sequência de símbolos, podemos definir padrões complexos para a realização de buscas e identificação de cadeias de caracteres em textos largos. Mas, você sabia que elas estão fortemente ligadas à noção de "o que é **computação**" e ao trabalho de pesquisa de grandes nomes como Alan Turing e Noam Chomsky?
 
 Neste post, veremos de onde vêm as expressões regulares e como implementá-las a partir de suas bases teóricas, explorando um pouco da área de **teoria da computação**. O conteúdo apresentado é baseado no livro *Introduction to the Theory of Computation* de Michael Sipser, cuja leitura recomendo veementemente caso tenha se interessado no tópico; e também baseado nas aulas da disciplina [Autômatos, Computabilidade e Complexidade (MAC0414)](https://uspdigital.usp.br/jupiterweb/obterDisciplina?sgldis=mac0414) do IME-USP.
 
@@ -64,7 +64,7 @@ Vamos ver a representação de *diagrama de estados* do sistema acima. Para faci
 
 Isto é *quase* um autômato finito, como logo veremos, mas ilustra bem a ideia geral. Neste tipo de diagrama, representamos os estados do autômato usando círculos e as transições com setas. Um computador com esta definição, que comece no estado **A** e processe uma fita contendo os comandos `[fecha, abre, abre]`, nesta ordem, deverá transitar entre os estados **F**, **A**, e **A** (note que uma porta aberta permanece igual quando recebe o comando `abre`).
 
-Nos resta adicionar dois conceitos para completar a definição de um autômato finito: em um autômato deve haver um estado de início, indicado por uma seta cuja origem não seja outro estado; e os estados de terminação, indicados por um círculo adicional interno. O estado de início é auto-explicativo, já os estados de terminação são um pouco mais complicados.
+Nos resta adicionar dois conceitos para completar a definição de um autômato finito: um autômato deve conter um estado de *início*, indicado por uma seta cuja origem não seja outro estado; e conter estados de *terminação* (ou *aceitação*), indicados por um círculo adicional interno. O estado de início é auto-explicativo, já os estados de terminação são um pouco mais complicados.
 
 O modelo computacional que definimos deve ser capaz de *aceitar* ou *rejeitar* as fitas que recebe como entrada: se seu último estado antes do fim da fita for um estado de terminação, a fita é aceita, caso contrário é rejeitada. Dizemos que a **linguagem** de um autômato é o conjunto de todas as fitas que aceita. Isto não é muito importante para o exemplo dado acima, afinal, toda sequência de apertos de botão para controlar uma porta é válida; no entanto, esta noção será fundamental para entender expressões regulares.
 
@@ -99,7 +99,9 @@ Um autômato finito que não possua "ambiguidade", isto é, todos os seus estado
 
 Agora, temos bagagem suficiente para definir *o que é* um autômato finito determinístico de maneira formal, isto é, dentro da matemática. Definições formais são úteis para especificar conceitos de forma inequívoca, evitando que pessoas diferentes tenham interpretações distintas de um mesmo assunto. Também vamos aproveitar esta definição como base do programa que escreveremos em breve...
 
-Um **autômato finito** é composto por $(Q, \Sigma, \delta, q_0, F)$, onde:
+### Definição formal
+
+Um **autômato finito determinístico** $M$ é composto por $(Q, \Sigma, \delta, q_0, F)$, onde:
 
 1. $Q$ é o conjunto de **estados**,
 
@@ -199,16 +201,15 @@ contains :: Set a -> a -> Bool
 contains set element = set element
 ```
 
-Este tipo é uma abreviação para uma função genérica em `a` que retorna verdadeiro se o elemento de `a` estiver no conjunto, e falso caso contrário.  Desta forma, nossos conjuntos serão representados pela *relação de pertencimento*.
+Este tipo é uma abreviação para uma função genérica em `a` que retorna verdadeiro se o elemento de `a` estiver no conjunto, e falso caso contrário.  Desta forma, nossos conjuntos serão representados pela *função característica*.
 
 Podemos representar nosso autômato finito da seguinte forma. O tipo criado abaixo tem como nome `DFA`, que vem do inglês *deterministic finite automaton*.
-<!-- Vale a pena mencionar que até agora estávamos estudando uma versão específica de autômato chamada *determinísica*, mas também existe o autômato finito *não determinístico*. -->
 
 ```haskell
 data DFA state symbol = MkDFA
-  { transition :: state -> symbol -> state,
-    start :: state,
-    end :: Set state
+  { transitionDfa :: state -> symbol -> state,
+    startDfa :: state,
+    endDfa :: Set state
   }
 ```
 
@@ -218,9 +219,9 @@ Acima, criamos um tipo chamado `DFA` que é genérico em outros dois tipos: `sta
 
 Valores do tipo `DFA` podem ser criados usando a função construtora `MkDFA` (diz-se "*make DFA*"). Como atributos, um `DFA` deve ter:
 
-- Uma função de transição ($\delta$) chamada `transition`, que recebe um estado e um símbolo e retorna outro estado.
-- Um estado de início ($q_0$) chamado `start`,
-- Um conjunto de estados de terminação ($F$) chamado `end`.
+- Uma função de transição ($\delta$) chamada `transitionDfa`, que recebe um estado e um símbolo e retorna outro estado.
+- Um estado de início ($q_0$) chamado `startDfa`,
+- Um conjunto de estados de terminação ($F$) chamado `endDfa`.
 
 Lembre do exemplo da porta eletrônica. Vamos representá-lo em Haskell!
 
@@ -335,14 +336,14 @@ A partir desta definição, a função que executa um autômato finito `dfa` com
 
 ```haskell
 runDfa :: DFA state symbol -> [symbol] -> state
-runDfa dfa tape = foldl (transition dfa) (start dfa) tape
+runDfa dfa tape = foldl (transitionDfa dfa) (startDfa dfa) tape
 ```
 
 Os trechos `(transition dfa)` e `(start dfa)` extraem a função de transição e o estado inicial de um autômato, respectivamente. Lembre que o tipo da função de transição é `state -> symbol -> state`, portanto, encaixa no tipo `b -> a -> b`. Após o fim da execução, precisamos saber se o estado final é de aceitação para descobrir se uma dada fita é parte da linguagem do autômato:
 
 ```haskell
-accepts :: DFA state symbol -> [symbol] -> Bool
-accepts dfa tape = end dfa `contains` runDfa dfa tape
+acceptsDfa :: DFA state symbol -> [symbol] -> Bool
+acceptsDfa dfa tape = endDfa dfa `contains` runDfa dfa tape
 ```
 
 A função acima verifica se o estado final é membro do conjunto de estados de terminação.
@@ -353,8 +354,8 @@ Para testar as funções que acabamos de definir com alguns exemplos, definimos 
 main = do
   print (runDfa example2 [A, A, B, A, B, A]) -- imprime Q1
   print (runDfa example2 [A, A, B, A, B, B]) -- imprime Q2
-  print (example2 `accepts` [A, A, B, A, B, A]) -- imprime True
-  print (example2 `accepts` [A, A, B, A, B, B]) -- imprime False
+  print (example2 `acceptsDfa` [A, A, B, A, B, A]) -- imprime True
+  print (example2 `acceptsDfa` [A, A, B, A, B, B]) -- imprime False
 ```
 
 Vamos ver um exemplo mais próximo do objetivo final de expressões regulares. Imagine que queremos formar um sistema capaz de decidir se uma palavra (ou uma *string*) é igual a "casa" ou "carro". Como vimos anteriormente, uma linguagem regular é o conjunto de entradas aceita por um autômato. Desta forma, vamos construir um autômato determinístico finito cuja linguagem é $\{\text{``casa''}, \text{``carro''}\}$. Seu alfabeto é composto por todas as letras da língua portuguesa. Portanto, todo estado deverá conter 26 transições -- uma para cada letra.
@@ -466,9 +467,9 @@ A seguir, podemos verificar que "casa" e "carro" realmente são aceitos pelo aut
 
 ```haskell
 main = do
-  print (example3 `accepts` "casa")  -- imprime True
-  print (example3 `accepts` "carro") -- imprime True
-  print (example3 `accepts` "calo")  -- imprime False
+  print (example3 `acceptsDfa` "casa")  -- imprime True
+  print (example3 `acceptsDfa` "carro") -- imprime True
+  print (example3 `acceptsDfa` "calo")  -- imprime False
 ```
 
 ## Operações regulares
@@ -690,7 +691,7 @@ A união $M = M_1 \cup M_2$ será igual a:
 	<text x="57.5" y="395.5" font-family="Times New Roman" font-size="20">e</text>
 	<path stroke-width="1" fill="none" d="M 391.707,46.574 A 143.965,143.965 0 1 1 391.707,287.426"/>
 	<polygon fill="black" stroke-width="1" points="391.707,287.426 395.659,295.992 401.139,287.627"/>
-	<text x="619.5" y="173.5" font-family="Times New Roman" font-size="20">o</text>
+	<text x="619.5" y="173.5" font-family="Times New Roman" font-size="20">e</text>
 </svg>
 </div>
 
@@ -715,31 +716,152 @@ Em Haskell, dados os tipos `q1` e `q2`, `(q1, q2)` é o tipo de todos os pares d
 
 ### Concatenação
 
-Para provar que a concatenação de duas linguagens regulares $A = A_1 \circ A_2$ é regular, precisamos construir um autômato que reconhece $A$. Se $M_1$ reconhece $A_1$ e $M_2$ reconhece $A_2$, o autômato $M$ que reconhece $A$ precisará de alguma forma simular a execução do autômato de $M_1$, e depois imediatamente simular a execução do autômato de $M_2$.
+Para provar que a concatenação de duas linguagens regulares $A = A_1 \circ A_2$ é regular, precisamos construir um autômato $M$ que reconhece $A$. Se $M_1$ reconhece $A_1$ e $M_2$ reconhece $A_2$, o autômato $M$ precisará de alguma forma simular a execução de $M_1$, e depois imediatamente simular a execução de $M_2$.
 
 Esta operação é menos direta que a união. Toda vez que $M$ atingir um estado de terminação de $M_1$, ele deverá começar a processar $M_2$, mas também deve continuar processando $M_1$ caso o estado de terminação seja alcançado novamente. Isto nos leva a crer que precisamos de alguma maneira de processar múltiplos estados ao mesmo tempo, algo que autômatos finitos determinísticos não são capazes de fazer. Vamos adicionar mais uma ferramenta ao nosso arsenal: **não-determinismo**.
 
-## Autômato finito não-determinístico
+## Autômato finito não-determinístico (NFA)
 
-<br/>
+Uma computação *determinística* é tal que cada transição de um estado para outro é única. Já uma computação *não-determinística* permite que uma transição leve para múltiplos estados, ou até mesmo para nenhum. Assim, a execução de um *autômato finito não-determinístico* (NFA, do inglês *non-deterministic finite automaton*), após começar no estado inicial, pode processar múltiplos estados ao mesmo tempo. Comparando com outros conceitos em ciência da computação, é como se cada transição iniciasse um ``processo'' separado, ou como se cada transição formasse uma ramificação dentro de uma árvore de execução. Quando uma ramificação não possui mais uma transição com o símbolo atual da fita, ela "morre", e somente as outras continuam executando.
 
-<!-- Até agora, vimos como definir autômatos finitos determinísticos e como representar linguagens regulares a partir deles. Agora, vamos ver como podemos *compor* diferentes autômatos, isto é, vamos ver operações entre autômatos. Já que  -->
+Além de transições a múltiplos estados, os NFAs possuem *transições vazias*, representadas pelo símbolo $\varepsilon$ (*epsilon*). Estas transições podem ocorrer a qualquer momento, sem precisar da leitura de uma posição da fita. Desta forma, toda vez que a execução de um NFA alcançar um estado que possui transições vazias, o NFA também deve processar os estados para os quais ela levam, e também processar os estados levados pelas transições vazias destes estados, e assim sucessivamente.
 
+Por fim, dizemos que um NFA aceita uma fita quando qualquer um dos estados finais paralelos alcançados for um estado de aceitação. Suponha que temos um alfabeto composto por $\{ 0, 1 \}$. Veja o exemplo abaixo:
 
-<!-- ## Autômato finito não-determinístico
+<div style="overflow-x: auto; overflow-y: hidden;">
+<svg width="500" height="170" style="display: block; margin: auto;" version="1.1" xmlns="http://www.w3.org/2000/svg">
+	<ellipse stroke-width="1" fill="none" cx="78.5" cy="48.5" rx="30" ry="30"/>
+	<text x="69.5" y="54.5" font-family="Times New Roman" font-size="20">q&#8320;</text>
+	<ellipse stroke-width="1" fill="none" cx="187.5" cy="48.5" rx="30" ry="30"/>
+	<text x="178.5" y="54.5" font-family="Times New Roman" font-size="20">q&#8321;</text>
+	<ellipse stroke-width="1" fill="none" cx="301.5" cy="48.5" rx="30" ry="30"/>
+	<text x="292.5" y="54.5" font-family="Times New Roman" font-size="20">q&#8322;</text>
+	<ellipse stroke-width="1" fill="none" cx="414.5" cy="48.5" rx="30" ry="30"/>
+	<text x="405.5" y="54.5" font-family="Times New Roman" font-size="20">q&#8323;</text>
+	<ellipse stroke-width="1" fill="none" cx="414.5" cy="48.5" rx="24" ry="24"/>
+	<polygon stroke-width="1" points="21.5,48.5 48.5,48.5"/>
+	<polygon fill="black" stroke-width="1" points="48.5,48.5 40.5,43.5 40.5,53.5"/>
+	<path stroke-width="1" fill="none" d="M 91.725,75.297 A 22.5,22.5 0 1 1 65.275,75.297"/>
+	<text x="63.5" y="137.5" font-family="Times New Roman" font-size="20">0, 1</text>
+	<polygon fill="black" stroke-width="1" points="65.275,75.297 56.527,78.83 64.618,84.708"/>
+	<polygon stroke-width="1" points="108.5,48.5 157.5,48.5"/>
+	<polygon fill="black" stroke-width="1" points="157.5,48.5 149.5,43.5 149.5,53.5"/>
+	<text x="128.5" y="69.5" font-family="Times New Roman" font-size="20">1</text>
+	<polygon stroke-width="1" points="217.5,48.5 271.5,48.5"/>
+	<polygon fill="black" stroke-width="1" points="271.5,48.5 263.5,43.5 263.5,53.5"/>
+	<text x="230.5" y="69.5" font-family="Times New Roman" font-size="20">0, ε</text>
+	<polygon stroke-width="1" points="331.5,48.5 384.5,48.5"/>
+	<polygon fill="black" stroke-width="1" points="384.5,48.5 376.5,43.5 376.5,53.5"/>
+	<text x="353.5" y="69.5" font-family="Times New Roman" font-size="20">1</text>
+	<path stroke-width="1" fill="none" d="M 427.725,75.297 A 22.5,22.5 0 1 1 401.275,75.297"/>
+	<text x="399.5" y="137.5" font-family="Times New Roman" font-size="20">0, 1</text>
+	<polygon fill="black" stroke-width="1" points="401.275,75.297 392.527,78.83 400.618,84.708"/>
+</svg>
+</div>
 
-Os autômatos determinísticos que vimos até então, apesar de úteis para modelar alguns sistemas simples, possuem algumas restrição importante: cada estado deve definir todas as suas transições possíveis, e cada transição deve ser única. Desta forma, a execução do autômato não pode "explorar" caminhos diferentes. -->
+Vamos simular a execução deste autômato para a fita `[1, 0, 1]`. No primeiro momento, o símbolo da entrada será $1$ e o estado inicial será $q_0$, então a execução do NFA deve realizar as transições com o símbolo $1$ de $q_0$. Então, os próximos estados a serem processados serão $q_0$ e $q_1$, *mas*, há uma transição vazia saindo de $q_1$, então também devemos processar $q_2$. Desta forma, quando a execução do autômato ler o segundo símbolo da fita, devemos processar os estados $q_0$, $q_1$, e $q_2$.
 
+Lendo o segundo símbolo da fita, $0$, o estado $q_0$ irá transitar para si mesmo, o estado $q_1$ irá transitar para $q_2$, e o estado $q_2$ irá parar sua execução, já que não possui transição com o símbolo $0$. Assim, os próximos estados serão $q_0$ e $q_2$.
 
+No último símbolo da fita, $1$, o estado $q_0$ transita para $q_0$, $q_1$, e $q_2$, e o estado $q_2$ transita para $q_3$. Já que a fita acabou, temos que verificar se algum dos estados finais é de terminação: $q_0$ não é, $q_1$ não é, $q_2$ não é, mas $q_3$ é. Como um destes estados é de terminação, o NFA aceita a fita `[1, 0, 1]`. Tendo visto este exemplo, vamos codificar NFAs formalmente.
 
-<!-- old: exemplo de carro e casa aqui. 
-A necessidade de representar cada transição ao estado de falha é certamente inconveniente. -->
+### Definição formal
+
+Um **autômato finito não-determinístico** $N$ é composto por $(Q, \Sigma, \delta, q_0, F)$, onde $Q$, $\Sigma$, $q_0$ e $F$ se mantêm os mesmos em relação a DFAs, mas a função de transição $\delta$ tem a seguinte assinatura:
+
+$$\delta : Q \times \Sigma_{\varepsilon} \to \mathcal{P}(Q)$$
+
+$\Sigma_{\varepsilon}$ é um conjunto de alfabeto com o símbolo $\varepsilon$ adicionado, para que possamos representar transições vazias. $\mathcal{P}(Q)$ é o *conjunto potência* de $Q$, isto é, o conjunto de todos os subconjuntos de $Q$. Assim, a função de transição de um NFA recebe um estado, um símbolo do alfabeto (ou $\varepsilon$), e retorna um conjunto de estados. Na próxima transição, cada um dos estados no conjunto retornado por $\delta$ deverá ser usado como entrada para esta função novamente.
+
+A seguir, vamos implementar esta definição em Haskell.
+
+### Código
+
+O tipo dos autômatos finitos não-determinísticos `NFA` pode ser definido da seguinte forma:
+
+```haskell
+data SymbolNFA a = Symb a | Empty
+
+data NFA state symbol = NFA
+  { transition :: state -> SymbolNFA symbol -> [state],
+    start      :: state,
+    end        :: Set state
+  }
+```
+
+Fizemos duas mudanças em relação aos DFAs:
+
+1. Cada símbolo em `symbol` da função de transição deverá estar em `SymbolNFA symbol`, para evitar que o usuário deste tipo tenha que fornecer seu próprio símbolo vazio.
+2. A função de transição retorna uma lista[^2] de estados em `state`.
+
+[^2]: Poderíamos utilizar alguma implementação de conjuntos como a fornecida no módulo `Data.Set` da biblioteca [containers](https://hackage-content.haskell.org/package/containers-0.8/docs/Data-Set.html), mas evitaremos bibliotecas externas no código deste post. Não usaremos o tipo `Set` do conjunto de terminação, já que o uso de não-determinismo em funções características é complexo, como discutido [nesta pergunta do StackOverflow](https://stackoverflow.com/questions/73576728/non-determinism-on-a-set-defined-by-the-characteristic-function).
+
+A execução do `NFA` será escrita desta forma:
+
+```haskell
+next :: (state -> SymbolNFA symbol -> [state]) -> [state] -> symbol -> [state]
+next δ states symbol =
+  states >>= \state ->
+    δ state (Symb symbol) ++ next δ (δ state Empty) symbol
+
+runNfa :: Foldable t => NFA s a -> t a -> [s]
+runNfa nfa = foldl (next (transitionNfa nfa)) [startNfa nfa]
+```
+
+Nota de notação: `\x -> y` cria uma função anônima (sem nome) com parâmetro `x` e corpo `y`.
+
+A função `next` é a mais interessante até agora, e só é possível de ser escrita de forma tão sucinta graças a dois aspectos de Haskell presentes em pouquíssimas linguagens de programação: *mônadas* (especificamente, a mônada de listas) e *avaliação por demanda*. Como este post não é um tutorial de Haskell, vamos explicar somente o necessário para entender o código acima. Se quiser saber mais sobre mônadas, recomendo [este post escrito por professores da UFABC](https://haskell.pesquisa.ufabc.edu.br/haskell/11.monads/).
+
+#### Mônadas
+
+Uma mônada (ou `Monad`) é uma abstração para um *contexto computacional*. Contextos computacionais "enrolam" dados, e a maneira como estes dados serão transformados depende da definição destes contextos. O contexto computacional das listas em Haskell é justamente não-determinismo -- qualquer dado que seja transformado dentro do contexto computacional da lista será tratado de forma não-determinística. Isto não é implementado no compilador da linguagem, mas sim a partir da *classe de tipos* `Monad`. Qualquer tipo `m` que implementar as seguintes duas funções pode ser considerado um `Monad`[^3]:
+
+[^3]: É desejável que um `Monad` também siga as *leis das mônadas*, discutidas [nesta página da Haskell Wiki](https://wiki.haskell.org/index.php?title=Monad_laws).
+
+```haskell
+return :: a -> m a
+(>>=)  :: m a -> (a -> m b) -> m b
+```
+
+A função `return`, muitas vezes chamada de `pure`, insere um valor *puro* em um contexto computacional. No caso de listas, é a função que cria uma lista de 1 elemento:
+
+```haskell
+return :: a -> List a
+return x = [x]
+```
+
+A função infixa `(>>=)`, pronunciada *bind*, recebe um contexto computacional, depois uma função que será executada dentro do contexto computacional (que tem acesso ao valor puro de `a`) e retorna outro contexto computacional, e então *bind* retorna o contexto criado por esta função. No caso de listas, *bind* deve receber uma lista e uma função que trata cada valor como se fosse único, retornando uma nova lista. Esta função será aplicada em cada um dos valores da lista original, e seus resultados serão concatenados:
+
+```haskell
+(>>=) :: List a -> (a -> List b) -> List b
+list >>= func = concat (map func list)
+```
+
+`map func list` executa `func` em cada elemento de `list`, criando uma lista de listas, e `concat` junta as listas resultantes em uma só.
+
+Em suma, a mônada de listas nos permite escrever código que realiza múltiplas escolhas ao mesmo tempo, fingindo que estamos fazendo apenas uma escolha.
+
+#### Avaliação por demanda
+
+A função não-determinística em `next` é definida como 
+```haskell
+\state -> δ state (Symb symbol) ++ next δ (δ state Empty) symbol
+```
+
+Esta função:
+
+1. Realiza todas as transições com símbolo `Symb symbol` do estado atual `state`,
+2. Realiza as transições vazias de `state` em `(δ state Empty)`,
+3. Recursivamente realiza todas as transições dos estados alcançados pela transição vazia em `next δ (δ state Empty) symbol`,
+4. Concatena as transições com símbolos às transições vazias através do operador `++`.
+
+Em linguagens de programação tradicionais, com avaliação *estrita*, a ordem de execução desta função seguiria exatamente os passos 1, 2, 3, e 4, e somente depois poderia retornar. Assim, um passo de execução do autômato só poderia ser realizado depois de calcular *todos* os possíveis próximos passos. Mas, Haskell possui avaliação por *demanda*, que calcula o valor de expressões somente quando necessário. Na prática, isto significa que a função que usar o resultado de `δ state (Symb symbol) ++ next δ (δ state Empty) symbol`, no primeiro momento, só irá processar o resultado parcial de `δ state (Symb symbol)`. Somente quando toda a lista gerada por esta expressão for processada, ocorrerá a execução de `next δ (δ state Empty) symbol`. Esta expressão também será avaliada por demanda, então novamente o resultado de `(δ state Empty)` será calculado aos poucos, até que toda a lista que gera seja percorrida. Desta forma, o fluxo de execução final estará mais próximo de seguir os passos na ordem 1, 4, 3, 2.
+
+A avaliação por demanda evita que transições cíclicas interrompam indefinidamente a execução de `next`. Por exemplo, suponha que dois estados possuam transições vazias entre si. Usando avaliação estrita, `next` iria necessariamente entrar em loop infinito. Com avaliação por demanda, este loop infinito só ocorrerá se o autômato não conseguir encontrar um estado de terminação antes do loop ser processado.[^4]
+
+[^4]: Seria possível evitar completamente loops infinitos usando algo como a [mônada Omega](https://hackage-content.haskell.org/package/control-monad-omega-0.3.3/docs/Control-Monad-Omega.html), que utiliza outra estratégia para computações não-determinísticas.
 
 ---
-
-
-
-
 
 *Você chegou ao fim do rascunho! Volte em breve...*
 
