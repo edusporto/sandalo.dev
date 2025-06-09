@@ -869,7 +869,7 @@ Em linguagens de programação tradicionais, com avaliação *estrita*, a ordem 
 
 A avaliação por demanda evita que transições cíclicas interrompam indefinidamente a execução de `next`. Por exemplo, suponha que dois estados possuam transições vazias entre si. Usando avaliação estrita, `next` iria necessariamente entrar em loop infinito. Com avaliação por demanda, este loop infinito só ocorrerá se o autômato não conseguir encontrar um estado de terminação antes do loop ser processado. Seria possível evitar completamente loops infinitos usando algo como a [mônada Omega](https://hackage-content.haskell.org/package/control-monad-omega-0.3.3/docs/Control-Monad-Omega.html), que utiliza outra estratégia para computações não-determinísticas. Para evitar complexidades adicionais, vamos parar por aqui.
 
-Finalmente, podemso representar o NFA de exemplo em código:
+Finalmente, podemos representar o NFA de exemplo em código:
 
 ```haskell
 data Binary = B0 | B1
@@ -905,9 +905,42 @@ main = do
 
 ## Equivalência entre DFAs e NFAs
 
-Por definição, as linguagens regulares são as linguagens reconhecidas por algum autômato finito determinístico. Mas, e as linguagens reconhecidas por algum autômato finito não-determinístico?
+Por definição, as linguagens regulares são as linguagens reconhecidas por algum autômato finito determinístico. Mas, e as linguagens reconhecidas por autômatos finitos não-determinísticos?
 
-Como veremos agora, DFAs e NFAs são **equivalentes** em poder -- isto é, toda linguagem aceita por um DFA também é aceita por NFA, e vice-versa.
+Como veremos agora, DFAs e NFAs são **equivalentes** em poder -- isto é, toda linguagem reconhecida por um NFA também é aceita por um NFA, e vice-versa. Portanto, toda linguagem reconhcida por um NFA é regular.
+
+Para provar esta equivalência, basta demonstrar que todo DFA pode ser transformado em um NFA com a mesma linguagem, e todo NFA pode ser transformado em um DFA.
+
+### Transformação de DFAs para NFAs
+
+Esta transformação é mais simples que a direção oposta. Suponha que temos o DFA $M = (Q, \Sigma, \delta, q_0, F)$ e queremos transformá-lo no NFA $N = (Q', \Sigma, \delta', q_0', F')$. Para transformá-lo em não-determinístico, basta alterar a função de transição para sempre retornar conjuntos com um único elemento, que será o estado retornado por $\delta$:
+
+$$\delta'(r, a) = \{ \delta(r, a) \}$$
+
+$M$ nunca terá transições vazias:
+
+$$\delta'(r, \varepsilon) = \{ \}$$
+
+Todos os outros itens de $M$ serão iguais aos de $N$. O código em Haskell fica da seguinte forma:
+
+```haskell
+dfaToNfa :: DFA state symbol -> NFA state symbol
+dfaToNfa (MkDFA δ start end) = MkNFA δ' start end
+  where
+    δ' state Empty         = []
+    δ' state (Symb symbol) = [δ state symbol]
+```
+
+### Transformação de NFAs para DFAs
+
+Suponha que temos o NFA $N = (Q, \Sigma, \delta, q_0, F)$ e queremos transformá-lo no DFA $M = (Q', \Sigma, \delta', q_0', F')$. A ideia será transformar o conjunto de estados em um *conjunto de conjunto de estados*. Desta forma, cada estado em $M$ será um conjunto de estados de $N$. Assim, podemos "fingir" que o DFA está em mais de um estado ao mesmo tempo -- de fato, ele estará acessando os estados do NFA no conjunto atual. Nesta estratégia, as transições do DFA ocorrerão de conjuntos de estados $Q_i$ para conjuntos de estados $Q_f$. $Q_f$ deverá conter, para cada estado $q$ de $Q_i$, os resultados das transições de $q$ com o símbolo atual, e todos os estados alcançáveis por transições vazias. O estado de início $q_0'$ será o conjunto que contêm somente $q_0$. O conjunto de terminação $F'$ deve conter todos os subconjuntos de $Q$ que possuam um estado de terminação.
+
+TODO: estado de início errado -- precisa lidar com as transições vazias
+
+Formalmente, os elementos de $M$ são os seguintes:
+
+1. $Q' = \mathcal{P}(Q)$
+2. 
 
 ---
 
@@ -1000,7 +1033,7 @@ unionDfa (MkDFA δ1 q1 end1) (MkDFA δ2 q2 end2) = MkDFA δ (q1, q2) end
 
 data SymbolNFA a = Symb a | Empty
 
-data NFA state symbol = NFA
+data NFA state symbol = MkNFA
   { transitionNfa :: state -> SymbolNFA symbol -> [state],
     startNfa      :: state,
     endNfa        :: Set state
@@ -1041,6 +1074,12 @@ example4 = NFA trans R1 (== R4)
     trans R4 (Symb B0) = [R4]
     trans R4 (Symb B1) = [R4]
     trans R4 Empty     = []
+
+dfaToNfa :: DFA state symbol -> NFA state symbol
+dfaToNfa (MkDFA δ start end) = MkNFA δ' start end
+  where
+    δ' start Empty      = []
+    δ' start (Symb sym) = [δ start sym]
 
 main = do
   print (runDfa example2 [A, A, B, A, B, A]) -- imprime Q1
