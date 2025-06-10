@@ -1060,7 +1060,7 @@ data Binary = B0 | B1
 data R = R1 | R2 | R3 | R4 deriving (Eq, Show)
 
 example4 :: NFA R Binary
-example4 = NFA trans R1 (== R4)
+example4 = MkNFA trans R1 (== R4)
   where
     trans R1 (Symb B0) = [R1]
     trans R1 (Symb B1) = [R1, R2]
@@ -1078,8 +1078,15 @@ example4 = NFA trans R1 (== R4)
 dfaToNfa :: DFA state symbol -> NFA state symbol
 dfaToNfa (MkDFA δ start end) = MkNFA δ' start end
   where
-    δ' start Empty      = []
-    δ' start (Symb sym) = [δ start sym]
+    δ' state Empty         = []
+    δ' state (Symb symbol) = [δ state symbol]
+
+nfaToDfa :: NFA state symbol -> DFA [state] symbol
+nfaToDfa (MkNFA δ start end) = MkDFA δ' start' end'
+  where
+    δ' r' a = next δ r' a
+    start'  = [start]
+    end'    = any (contains end)
 
 main = do
   print (runDfa example2 [A, A, B, A, B, A]) -- imprime Q1
